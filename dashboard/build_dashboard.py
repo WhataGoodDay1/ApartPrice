@@ -188,6 +188,91 @@ def build_rows(rows: list[dict], complexes: dict[str, dict], recent_months: int 
     return out
 
 
+def _area_sort_key(bucket: str) -> float:
+    try:
+        return float(bucket.rstrip("㎡"))
+    except ValueError:
+        return 0.0
+
+
+def build_complex_summaries(rows: list[dict], complexes: dict[str, dict]) -> list[dict]:
+    """"단지 정보" 탭용 단지별 요약. 5년 전체 raw 데이터 기준으로 계산한다.
+
+    세대수(households)는 국토부 실거래가 API에 없는 값이라 config/complexes.json에
+    아직 없음 — complex_.get("households")가 None이면 프론트에서 "정보 없음"으로 표시.
+    같은 이유로 정식 회전율(거래량/세대수)은 계산할 수 없어, 대신 데이터 기간 기준
+    "연평균 거래량"을 참고용 근사치로 제공한다.
+    """
+    by_complex: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_complex[r["complex_id"]].append(r)
+
+    group_trends = build_group_trends(rows)  # 전월 대비 7% 급변 이상치 제외된 월별 평균가 추이
+
+    summaries: list[dict] = []
+    for cid, complex_ in complexes.items():
+        crows = by_complex.get(cid, [])
+        if not crows:
+            continue
+
+        area_groups: dict[str, list[dict]] = defaultdict(list)
+        for r in crows:
+            area_groups[area_bucket(r["area_exclusive"])].append(r)
+
+        area_stats = []
+        for bucket in sorted(area_groups, key=_area_sort_key):
+            items = area_groups[bucket]
+            sale = [r for r in items if r["deal_type"] == "매매"]
+            jeonse = [r for r in items if r["deal_type"] == "전세"]
+            wolse = [r for r in items if r["deal_type"] == "월세"]
+            sale_prices = [int(r["price_or_deposit"]) for r in sale]
+            jeonse_prices = [int(r["price_or_deposit"]) for r in jeonse]
+            sale_latest_row = max(sale, key=lambda r: r["contract_date"], default=None)
+            jeonse_latest_row = max(jeonse, key=lambda r: r["contract_date"], default=None)
+
+            area_stats.append({
+                "bucket": bucket,
+                "pyeongExclusive": round(_area_sort_key(bucket) / PYEONG, 1),
+                "saleAvg": round(sum(sale_prices) / len(sale_prices)) if sale_prices else None,
+                "saleMax": max(sale_prices) if sale_prices else None,
+                "saleMin": min(sale_prices) if sale_prices else None,
+                "saleLatest": {"price": int(sale_latest_row["price_or_deposit"]), "date": sale_latest_row["contract_date"]} if sale_latest_row else None,
+                "saleCount": len(sale),
+                "jeonseAvg": round(sum(jeonse_prices) / len(jeonse_prices)) if jeonse_prices else None,
+                "jeonseLatest": {"price": int(jeonse_latest_row["price_or_deposit"]), "date": jeonse_latest_row["contract_date"]} if jeonse_latest_row else None,
+                "jeonseCount": len(jeonse),
+                "wolseCount": len(wolse),
+                "trendSale": group_trends.get((cid, "매매", bucket), []),  # 5년 매매 평균가 추이(이상치 제외)
+                "trendJeonse": group_trends.get((cid, "전세", bucket), []),  # 5년 전세 평균가 추이(이상치 제외)
+            })
+
+        sale_rows = [r for r in crows if r["deal_type"] == "매매"]
+        sale_max_row = max(sale_rows, key=lambda r: int(r["price_or_deposit"]), default=None)
+        sale_min_row = min(sale_rows, key=lambda r: int(r["price_or_deposit"]), default=None)
+
+        dates = [r["contract_date"] for r in crows]
+        span_days = (datetime.strptime(max(dates), "%Y-%m-%d") - datetime.strptime(min(dates), "%Y-%m-%d")).days if len(dates) >= 2 else 0
+        avg_trades_per_year = round(len(crows) / (span_days / 365), 1) if span_days > 0 else None
+
+        summaries.append({
+            "id": cid,
+            "name": complex_["name"],
+            "region": complex_.get("region", ""),
+            "households": complex_.get("households"),  # 미보유 시 None -> 프론트에서 "정보 없음"
+            "areaStats": area_stats,
+            "saleMax": {"price": int(sale_max_row["price_or_deposit"]), "areaBucket": area_bucket(sale_max_row["area_exclusive"]), "date": sale_max_row["contract_date"]} if sale_max_row else None,
+            "saleMin": {"price": int(sale_min_row["price_or_deposit"]), "areaBucket": area_bucket(sale_min_row["area_exclusive"]), "date": sale_min_row["contract_date"]} if sale_min_row else None,
+            "totalTrades": len(crows),
+            "totalSale": len(sale_rows),
+            "totalJeonse": len([r for r in crows if r["deal_type"] == "전세"]),
+            "totalWolse": len([r for r in crows if r["deal_type"] == "월세"]),
+            "avgTradesPerYear": avg_trades_per_year,
+            "dataSpan": f"{min(dates)} ~ {max(dates)}" if dates else "-",
+        })
+
+    return summaries
+
+
 def build_summary_html(rows: list[dict], complexes: dict[str, dict], entries: list[dict]) -> str:
     total = len(rows)
     by_type = defaultdict(int)
@@ -202,14 +287,7 @@ def build_summary_html(rows: list[dict], complexes: dict[str, dict], entries: li
     ratios = [e["jeonseRatio"] for e in entries if e["dealType"] == "매매" and e["jeonseRatio"] is not None]
     avg_ratio = f"{sum(ratios) / len(ratios):.1f}%" if ratios else "산출 불가"
 
-    names = " · ".join(c["name"] for c in complexes.values())
-
     return f"""
-    <div class="stat">
-      <div class="label">추적 단지</div>
-      <div class="value">{len(complexes)}개</div>
-      <div class="sub">{names}</div>
-    </div>
     <div class="stat">
       <div class="label">누적 거래(5년)</div>
       <div class="value">{total}건</div>
@@ -263,6 +341,14 @@ def build() -> Path:
     html = re.sub(
         r"/\*DATA_START\*/.*?/\*DATA_END\*/",
         f"/*DATA_START*/\n  {rows_js}\n  /*DATA_END*/",
+        html, flags=re.S,
+    )
+
+    complex_summaries = build_complex_summaries(rows, complexes)
+    complex_js = "const COMPLEX_SUMMARIES = " + json.dumps(complex_summaries, ensure_ascii=False, indent=2) + ";"
+    html = re.sub(
+        r"/\*COMPLEX_DATA_START\*/.*?/\*COMPLEX_DATA_END\*/",
+        f"/*COMPLEX_DATA_START*/\n  {complex_js}\n  /*COMPLEX_DATA_END*/",
         html, flags=re.S,
     )
 
