@@ -207,6 +207,8 @@ def build_complex_summaries(rows: list[dict], complexes: dict[str, dict]) -> lis
     for r in rows:
         by_complex[r["complex_id"]].append(r)
 
+    group_trends = build_group_trends(rows)  # 전월 대비 7% 급변 이상치 제외된 월별 평균가 추이
+
     summaries: list[dict] = []
     for cid, complex_ in complexes.items():
         crows = by_complex.get(cid, [])
@@ -240,6 +242,7 @@ def build_complex_summaries(rows: list[dict], complexes: dict[str, dict]) -> lis
                 "jeonseLatest": {"price": int(jeonse_latest_row["price_or_deposit"]), "date": jeonse_latest_row["contract_date"]} if jeonse_latest_row else None,
                 "jeonseCount": len(jeonse),
                 "wolseCount": len(wolse),
+                "trend": group_trends.get((cid, "매매", bucket), []),  # 5년 매매 평균가 추이(이상치 제외)
             })
 
         sale_rows = [r for r in crows if r["deal_type"] == "매매"]
@@ -283,14 +286,7 @@ def build_summary_html(rows: list[dict], complexes: dict[str, dict], entries: li
     ratios = [e["jeonseRatio"] for e in entries if e["dealType"] == "매매" and e["jeonseRatio"] is not None]
     avg_ratio = f"{sum(ratios) / len(ratios):.1f}%" if ratios else "산출 불가"
 
-    names = " · ".join(c["name"] for c in complexes.values())
-
     return f"""
-    <div class="stat">
-      <div class="label">추적 단지</div>
-      <div class="value">{len(complexes)}개</div>
-      <div class="sub">{names}</div>
-    </div>
     <div class="stat">
       <div class="label">누적 거래(5년)</div>
       <div class="value">{total}건</div>

@@ -15,6 +15,12 @@
     --fall: #2f5fc4;
     --fall-soft: #e3eaf9;
     --flat: #8a8471;
+    /* 단지 상세 추이 차트: 면적 종류별 계열 색상(카테고리 팔레트, 고정 순서) */
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -32,6 +38,11 @@
       --fall: #85a6ec;
       --fall-soft: #212c3f;
       --flat: #9a927c;
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+      --series-5: #d55181;
     }
   }
   :root[data-theme="dark"] {
@@ -49,6 +60,11 @@
     --fall: #85a6ec;
     --fall-soft: #212c3f;
     --flat: #9a927c;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
   }
 
   * { box-sizing: border-box; }
@@ -257,6 +273,36 @@
   .complex-detail .complex-meta { color: var(--text-dim); font-size: 0.82rem; margin-top: 6px; }
   .complex-detail .summary { margin-top: 14px; }
   .complex-detail .empty { color: var(--text-dim); padding: 24px 0; }
+  .complex-detail h3 { font-size: 0.95rem; margin-top: 20px; margin-bottom: 8px; }
+
+  /* ---- 단지 상세: 매매가 추이 차트 ---- */
+  .chart-wrap { position: relative; }
+  .complex-chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .complex-chart .gridline { stroke: var(--border); stroke-width: 1; }
+  .complex-chart .axis-label { fill: var(--text-dim); font-size: 11px; font-family: inherit; }
+  .complex-chart .series-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .complex-chart .series-dot { stroke: var(--surface); stroke-width: 2; }
+  .complex-chart .crosshair { stroke: var(--text-dim); stroke-width: 1; stroke-dasharray: 3,3; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 0.8rem; color: var(--text-dim); }
+  .chart-legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .chart-legend .swatch { width: 14px; height: 2px; border-radius: 1px; display: inline-block; }
+  .chart-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+    transform: translate(-50%, -110%);
+    white-space: nowrap;
+    z-index: 5;
+  }
+  .chart-tooltip .row { display: flex; align-items: center; gap: 6px; padding: 1px 0; }
+  .chart-tooltip .row .k { width: 10px; height: 2px; border-radius: 1px; display: inline-block; flex: none; }
+  .chart-tooltip .row .lbl { color: var(--text-dim); }
+  .chart-tooltip .row .ym { color: var(--text-dim); font-size: 0.7rem; }
 
   footer {
     border-top: 1px solid var(--border);
@@ -610,6 +656,10 @@
           <div class="sub">참고용 · 세대수 미반영이라 정식 회전율 아님</div>
         </div>
       </section>
+
+      <h3>5년 매매가 추이 (전월 대비 7% 급변하는 이상치 제외)</h3>
+      <div class="complex-chart" id="complex-chart"></div>
+
       <div class="table-wrap" style="margin-top:14px;">
         <table>
           <thead>
@@ -622,6 +672,137 @@
         </table>
       </div>
     `;
+
+    renderComplexChart(c);
+  }
+
+  const SERIES_COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)", "var(--series-5)"];
+
+  // "YYYYMM" -> 연속된 개월 인덱스(x좌표/연도축 계산용)
+  function ymToIndex(ym) {
+    const y = parseInt(ym.slice(0, 4), 10), m = parseInt(ym.slice(4, 6), 10);
+    return y * 12 + (m - 1);
+  }
+
+  function findNearestPoint(points, idx) {
+    let best = null, bestDist = Infinity;
+    for (const p of points) {
+      const d = Math.abs(ymToIndex(p.ym) - idx);
+      if (d < bestDist) { bestDist = d; best = p; }
+    }
+    return best;
+  }
+
+  // 단지 상세: 면적 종류별 5년 매매가 추이(이상치 제외, x축 연도 표시) 라인 차트.
+  function renderComplexChart(c) {
+    const wrap = document.getElementById("complex-chart");
+    // 색상은 면적 목록상의 원래 순서에 고정(필터링으로 계열이 빠져도 남은 계열 색이 안 바뀌게).
+    const series = c.areaStats
+      .map((a, i) => ({ label: a.bucket, color: SERIES_COLORS[i % SERIES_COLORS.length], points: a.trend || [] }))
+      .filter(s => s.points.length >= 2);
+
+    if (!series.length) {
+      wrap.innerHTML = `<p class="empty">추이를 그릴 만큼 충분한 5년 매매 데이터가 없습니다.</p>`;
+      return;
+    }
+
+    const allPoints = series.flatMap(s => s.points.map(p => ({ idx: ymToIndex(p.ym), avg: p.avg })));
+    const xMin = Math.min(...allPoints.map(p => p.idx));
+    const xMax = Math.max(...allPoints.map(p => p.idx));
+    const yMin = Math.min(...allPoints.map(p => p.avg));
+    const yMax = Math.max(...allPoints.map(p => p.avg));
+    const yPad = (yMax - yMin) * 0.1 || yMax * 0.1 || 1;
+    const yLo = yMin - yPad, yHi = yMax + yPad;
+
+    const W = 760, H = 260, padL = 60, padR = 16, padT = 16, padB = 30;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const xOf = idx => padL + (xMax === xMin ? innerW / 2 : (idx - xMin) / (xMax - xMin) * innerW);
+    const yOf = v => padT + innerH - (yHi === yLo ? innerH / 2 : (v - yLo) / (yHi - yLo) * innerH);
+
+    // 연도 눈금: 데이터 구간에 걸친 매년 1월 지점(도메인 밖이면 양 끝으로 클램프).
+    const startYear = Math.floor(xMin / 12), endYear = Math.floor(xMax / 12);
+    const yearTicks = [];
+    for (let y = startYear; y <= endYear; y++) {
+      yearTicks.push({ year: y, idx: Math.max(xMin, Math.min(xMax, y * 12)) });
+    }
+
+    const yTickCount = 4;
+    const yTickVals = Array.from({ length: yTickCount + 1 }, (_, i) => yLo + (yHi - yLo) * i / yTickCount);
+
+    const gridHtml = yTickVals.map(v => `
+      <line class="gridline" x1="${padL}" x2="${W - padR}" y1="${yOf(v).toFixed(1)}" y2="${yOf(v).toFixed(1)}"></line>
+      <text class="axis-label" x="${padL - 8}" y="${(yOf(v) + 4).toFixed(1)}" text-anchor="end">${fmtWon(Math.round(v))}</text>
+    `).join("");
+
+    const yearHtml = yearTicks.map(t => `
+      <text class="axis-label" x="${xOf(t.idx).toFixed(1)}" y="${H - padB + 18}" text-anchor="middle">${t.year}</text>
+    `).join("");
+
+    const linesHtml = series.map(s => {
+      const pts = s.points.map(p => `${xOf(ymToIndex(p.ym)).toFixed(1)},${yOf(p.avg).toFixed(1)}`).join(" ");
+      const last = s.points[s.points.length - 1];
+      return `
+        <polyline class="series-line" points="${pts}" stroke="${s.color}"></polyline>
+        <circle class="series-dot" cx="${xOf(ymToIndex(last.ym)).toFixed(1)}" cy="${yOf(last.avg).toFixed(1)}" r="4" fill="${s.color}"></circle>
+      `;
+    }).join("");
+
+    const legendHtml = series.map(s =>
+      `<span class="key"><span class="swatch" style="background:${s.color}"></span>${s.label}</span>`
+    ).join("");
+
+    wrap.innerHTML = `
+      <div class="chart-wrap">
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.name} 5년 매매가 추이 차트">
+          <text class="axis-label" x="${padL}" y="${padT - 4}" text-anchor="start">만원</text>
+          ${gridHtml}
+          <line class="gridline" x1="${padL}" x2="${W - padR}" y1="${H - padB}" y2="${H - padB}"></line>
+          <line class="crosshair" x1="${padL}" x2="${padL}" y1="${padT}" y2="${H - padB}" visibility="hidden"></line>
+          ${linesHtml}
+          ${yearHtml}
+        </svg>
+        <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+      </div>
+      <div class="chart-legend">${legendHtml}</div>
+    `;
+
+    const svgEl = wrap.querySelector("svg");
+    const crosshairEl = svgEl.querySelector(".crosshair");
+    const tooltipEl = wrap.querySelector("#chart-tooltip");
+
+    svgEl.addEventListener("pointermove", e => {
+      const rect = svgEl.getBoundingClientRect();
+      const svgX = (e.clientX - rect.left) / rect.width * W;
+      const clampedX = Math.max(padL, Math.min(W - padR, svgX));
+      const targetIdx = xMin + (clampedX - padL) / innerW * (xMax - xMin);
+
+      const rows = series.map(s => {
+        const p = findNearestPoint(s.points, targetIdx);
+        return p ? { label: s.label, color: s.color, price: p.avg, ym: p.ym } : null;
+      }).filter(Boolean);
+      if (!rows.length) return;
+
+      crosshairEl.setAttribute("x1", clampedX.toFixed(1));
+      crosshairEl.setAttribute("x2", clampedX.toFixed(1));
+      crosshairEl.setAttribute("visibility", "visible");
+
+      tooltipEl.innerHTML = rows.map(r => `
+        <div class="row">
+          <span class="k" style="background:${r.color}"></span>
+          <span class="lbl">${r.label}</span>
+          <strong>${fmtManwon(r.price)}</strong>
+          <span class="ym">${r.ym.slice(0, 4)}.${r.ym.slice(4, 6)}</span>
+        </div>
+      `).join("");
+      tooltipEl.hidden = false;
+      tooltipEl.style.left = `${e.clientX - rect.left}px`;
+      tooltipEl.style.top = `${e.clientY - rect.top}px`;
+    });
+
+    svgEl.addEventListener("pointerleave", () => {
+      tooltipEl.hidden = true;
+      crosshairEl.setAttribute("visibility", "hidden");
+    });
   }
 
   function buildComplexPicker() {
