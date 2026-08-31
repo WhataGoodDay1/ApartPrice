@@ -273,7 +273,17 @@
   .complex-detail .complex-meta { color: var(--text-dim); font-size: 0.82rem; margin-top: 6px; }
   .complex-detail .summary { margin-top: 14px; }
   .complex-detail .empty { color: var(--text-dim); padding: 24px 0; }
-  .complex-detail h3 { font-size: 0.95rem; margin-top: 20px; margin-bottom: 8px; }
+  .complex-detail h3 { font-size: 0.95rem; }
+  .complex-chart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+  .complex-chart-head .chip-toggle { max-width: none; }
 
   /* ---- 단지 상세: 매매가 추이 차트 ---- */
   .chart-wrap { position: relative; }
@@ -334,7 +344,7 @@
     </div>
     <div class="meta">
       <div>마지막 업데이트</div>
-      <div class="updated mono" id="updated-at"><!--UPDATED_AT-->2026-08-31 22:02 (로컬 실행 기준)<!--/UPDATED_AT--></div>
+      <div class="updated mono" id="updated-at"><!--UPDATED_AT-->2026-08-31 22:08 (로컬 실행 기준)<!--/UPDATED_AT--></div>
     </div>
   </header>
 
@@ -359,11 +369,16 @@
   <!--SUMMARY_END-->
 
   <div class="view-tabs" id="view-tabs" role="tablist" aria-label="보기 전환">
-    <button data-view="raw" role="tab" aria-selected="true">Raw Data</button>
-    <button data-view="complex" role="tab" aria-selected="false">단지 정보</button>
+    <button data-view="complex" role="tab" aria-selected="true">단지 정보</button>
+    <button data-view="raw" role="tab" aria-selected="false">Raw Data</button>
   </div>
 
-  <div id="view-raw">
+  <div id="view-complex">
+    <div class="complex-picker" id="complex-picker"></div>
+    <div class="complex-detail" id="complex-detail"></div>
+  </div>
+
+  <div id="view-raw" hidden>
 
   <section class="filters" aria-label="필터">
     <div class="filter-group">
@@ -423,11 +438,6 @@
     </table>
   </section>
 
-  </div>
-
-  <div id="view-complex" hidden>
-    <div class="complex-picker" id="complex-picker"></div>
-    <div class="complex-detail" id="complex-detail"></div>
   </div>
 
   <footer>
@@ -23158,7 +23168,13 @@
         },
         "jeonseCount": 1,
         "wolseCount": 2,
-        "trend": []
+        "trendSale": [],
+        "trendJeonse": [
+          {
+            "ym": "202607",
+            "avg": 46000
+          }
+        ]
       },
       {
         "bucket": "85㎡",
@@ -23178,10 +23194,20 @@
         },
         "jeonseCount": 6,
         "wolseCount": 6,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202608",
             "avg": 98000
+          }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202511",
+            "avg": 40000
+          },
+          {
+            "ym": "202607",
+            "avg": 60000
           }
         ]
       },
@@ -23200,7 +23226,13 @@
         },
         "jeonseCount": 1,
         "wolseCount": 0,
-        "trend": []
+        "trendSale": [],
+        "trendJeonse": [
+          {
+            "ym": "202607",
+            "avg": 80000
+          }
+        ]
       }
     ],
     "saleMax": {
@@ -23244,10 +23276,16 @@
         },
         "jeonseCount": 1,
         "wolseCount": 40,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202407",
             "avg": 40000
+          }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202601",
+            "avg": 27000
           }
         ]
       },
@@ -23269,7 +23307,7 @@
         },
         "jeonseCount": 20,
         "wolseCount": 220,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202112",
             "avg": 50000
@@ -23289,6 +23327,56 @@
           {
             "ym": "202608",
             "avg": 35550
+          }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202208",
+            "avg": 29000
+          },
+          {
+            "ym": "202305",
+            "avg": 28000
+          },
+          {
+            "ym": "202306",
+            "avg": 28000
+          },
+          {
+            "ym": "202410",
+            "avg": 30000
+          },
+          {
+            "ym": "202412",
+            "avg": 28000
+          },
+          {
+            "ym": "202506",
+            "avg": 28500
+          },
+          {
+            "ym": "202507",
+            "avg": 29000
+          },
+          {
+            "ym": "202508",
+            "avg": 28000
+          },
+          {
+            "ym": "202510",
+            "avg": 27000
+          },
+          {
+            "ym": "202512",
+            "avg": 28000
+          },
+          {
+            "ym": "202602",
+            "avg": 28000
+          },
+          {
+            "ym": "202604",
+            "avg": 28000
           }
         ]
       }
@@ -23334,7 +23422,7 @@
         },
         "jeonseCount": 134,
         "wolseCount": 56,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202110",
             "avg": 63000
@@ -23507,6 +23595,120 @@
             "ym": "202607",
             "avg": 58017
           }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202109",
+            "avg": 47000
+          },
+          {
+            "ym": "202111",
+            "avg": 40850
+          },
+          {
+            "ym": "202203",
+            "avg": 34283
+          },
+          {
+            "ym": "202204",
+            "avg": 35538
+          },
+          {
+            "ym": "202208",
+            "avg": 34000
+          },
+          {
+            "ym": "202210",
+            "avg": 35200
+          },
+          {
+            "ym": "202211",
+            "avg": 34000
+          },
+          {
+            "ym": "202212",
+            "avg": 34500
+          },
+          {
+            "ym": "202301",
+            "avg": 33167
+          },
+          {
+            "ym": "202309",
+            "avg": 35500
+          },
+          {
+            "ym": "202310",
+            "avg": 36367
+          },
+          {
+            "ym": "202311",
+            "avg": 37667
+          },
+          {
+            "ym": "202312",
+            "avg": 38000
+          },
+          {
+            "ym": "202401",
+            "avg": 38000
+          },
+          {
+            "ym": "202402",
+            "avg": 38750
+          },
+          {
+            "ym": "202403",
+            "avg": 36875
+          },
+          {
+            "ym": "202404",
+            "avg": 37800
+          },
+          {
+            "ym": "202408",
+            "avg": 39500
+          },
+          {
+            "ym": "202409",
+            "avg": 38000
+          },
+          {
+            "ym": "202410",
+            "avg": 38750
+          },
+          {
+            "ym": "202411",
+            "avg": 38625
+          },
+          {
+            "ym": "202412",
+            "avg": 39000
+          },
+          {
+            "ym": "202504",
+            "avg": 35575
+          },
+          {
+            "ym": "202505",
+            "avg": 35512
+          },
+          {
+            "ym": "202506",
+            "avg": 35000
+          },
+          {
+            "ym": "202511",
+            "avg": 37117
+          },
+          {
+            "ym": "202602",
+            "avg": 40000
+          },
+          {
+            "ym": "202604",
+            "avg": 40000
+          }
         ]
       },
       {
@@ -23527,7 +23729,7 @@
         },
         "jeonseCount": 238,
         "wolseCount": 66,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202109",
             "avg": 84000
@@ -23736,6 +23938,172 @@
             "ym": "202608",
             "avg": 68000
           }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202109",
+            "avg": 42500
+          },
+          {
+            "ym": "202110",
+            "avg": 42350
+          },
+          {
+            "ym": "202112",
+            "avg": 48000
+          },
+          {
+            "ym": "202204",
+            "avg": 42714
+          },
+          {
+            "ym": "202205",
+            "avg": 41325
+          },
+          {
+            "ym": "202206",
+            "avg": 41950
+          },
+          {
+            "ym": "202209",
+            "avg": 42000
+          },
+          {
+            "ym": "202210",
+            "avg": 39875
+          },
+          {
+            "ym": "202211",
+            "avg": 40333
+          },
+          {
+            "ym": "202301",
+            "avg": 34786
+          },
+          {
+            "ym": "202302",
+            "avg": 32833
+          },
+          {
+            "ym": "202304",
+            "avg": 35400
+          },
+          {
+            "ym": "202305",
+            "avg": 37200
+          },
+          {
+            "ym": "202306",
+            "avg": 38743
+          },
+          {
+            "ym": "202310",
+            "avg": 43000
+          },
+          {
+            "ym": "202311",
+            "avg": 42750
+          },
+          {
+            "ym": "202312",
+            "avg": 42250
+          },
+          {
+            "ym": "202401",
+            "avg": 40100
+          },
+          {
+            "ym": "202402",
+            "avg": 41500
+          },
+          {
+            "ym": "202405",
+            "avg": 40000
+          },
+          {
+            "ym": "202407",
+            "avg": 42000
+          },
+          {
+            "ym": "202408",
+            "avg": 42000
+          },
+          {
+            "ym": "202409",
+            "avg": 40000
+          },
+          {
+            "ym": "202411",
+            "avg": 45000
+          },
+          {
+            "ym": "202412",
+            "avg": 45000
+          },
+          {
+            "ym": "202501",
+            "avg": 43500
+          },
+          {
+            "ym": "202502",
+            "avg": 42167
+          },
+          {
+            "ym": "202503",
+            "avg": 40750
+          },
+          {
+            "ym": "202504",
+            "avg": 40906
+          },
+          {
+            "ym": "202505",
+            "avg": 40154
+          },
+          {
+            "ym": "202506",
+            "avg": 40950
+          },
+          {
+            "ym": "202508",
+            "avg": 41312
+          },
+          {
+            "ym": "202510",
+            "avg": 43500
+          },
+          {
+            "ym": "202511",
+            "avg": 43833
+          },
+          {
+            "ym": "202601",
+            "avg": 44875
+          },
+          {
+            "ym": "202602",
+            "avg": 45000
+          },
+          {
+            "ym": "202603",
+            "avg": 45000
+          },
+          {
+            "ym": "202604",
+            "avg": 47000
+          },
+          {
+            "ym": "202605",
+            "avg": 47000
+          },
+          {
+            "ym": "202607",
+            "avg": 45000
+          },
+          {
+            "ym": "202608",
+            "avg": 44500
+          }
         ]
       }
     ],
@@ -23780,7 +24148,7 @@
         },
         "jeonseCount": 21,
         "wolseCount": 12,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202109",
             "avg": 74500
@@ -23833,6 +24201,48 @@
             "ym": "202606",
             "avg": 61000
           }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202111",
+            "avg": 40000
+          },
+          {
+            "ym": "202208",
+            "avg": 37000
+          },
+          {
+            "ym": "202301",
+            "avg": 32000
+          },
+          {
+            "ym": "202302",
+            "avg": 30000
+          },
+          {
+            "ym": "202312",
+            "avg": 38000
+          },
+          {
+            "ym": "202407",
+            "avg": 39000
+          },
+          {
+            "ym": "202411",
+            "avg": 36700
+          },
+          {
+            "ym": "202508",
+            "avg": 40000
+          },
+          {
+            "ym": "202602",
+            "avg": 40000
+          },
+          {
+            "ym": "202603",
+            "avg": 42000
+          }
         ]
       },
       {
@@ -23853,7 +24263,7 @@
         },
         "jeonseCount": 217,
         "wolseCount": 51,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202109",
             "avg": 86900
@@ -24010,6 +24420,172 @@
             "ym": "202607",
             "avg": 68820
           }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202110",
+            "avg": 35000
+          },
+          {
+            "ym": "202201",
+            "avg": 44808
+          },
+          {
+            "ym": "202202",
+            "avg": 43958
+          },
+          {
+            "ym": "202203",
+            "avg": 45500
+          },
+          {
+            "ym": "202205",
+            "avg": 38793
+          },
+          {
+            "ym": "202206",
+            "avg": 39650
+          },
+          {
+            "ym": "202207",
+            "avg": 39400
+          },
+          {
+            "ym": "202208",
+            "avg": 37990
+          },
+          {
+            "ym": "202209",
+            "avg": 39936
+          },
+          {
+            "ym": "202210",
+            "avg": 39700
+          },
+          {
+            "ym": "202302",
+            "avg": 36667
+          },
+          {
+            "ym": "202303",
+            "avg": 37150
+          },
+          {
+            "ym": "202304",
+            "avg": 36750
+          },
+          {
+            "ym": "202305",
+            "avg": 38667
+          },
+          {
+            "ym": "202308",
+            "avg": 40000
+          },
+          {
+            "ym": "202309",
+            "avg": 41500
+          },
+          {
+            "ym": "202310",
+            "avg": 42833
+          },
+          {
+            "ym": "202311",
+            "avg": 40800
+          },
+          {
+            "ym": "202312",
+            "avg": 41750
+          },
+          {
+            "ym": "202401",
+            "avg": 41750
+          },
+          {
+            "ym": "202402",
+            "avg": 40000
+          },
+          {
+            "ym": "202403",
+            "avg": 41833
+          },
+          {
+            "ym": "202406",
+            "avg": 41571
+          },
+          {
+            "ym": "202409",
+            "avg": 41250
+          },
+          {
+            "ym": "202410",
+            "avg": 42500
+          },
+          {
+            "ym": "202411",
+            "avg": 45000
+          },
+          {
+            "ym": "202412",
+            "avg": 45000
+          },
+          {
+            "ym": "202502",
+            "avg": 40667
+          },
+          {
+            "ym": "202503",
+            "avg": 42236
+          },
+          {
+            "ym": "202506",
+            "avg": 41162
+          },
+          {
+            "ym": "202507",
+            "avg": 44000
+          },
+          {
+            "ym": "202508",
+            "avg": 42000
+          },
+          {
+            "ym": "202510",
+            "avg": 46000
+          },
+          {
+            "ym": "202511",
+            "avg": 43667
+          },
+          {
+            "ym": "202512",
+            "avg": 44167
+          },
+          {
+            "ym": "202601",
+            "avg": 44250
+          },
+          {
+            "ym": "202602",
+            "avg": 45625
+          },
+          {
+            "ym": "202603",
+            "avg": 44000
+          },
+          {
+            "ym": "202604",
+            "avg": 45000
+          },
+          {
+            "ym": "202605",
+            "avg": 44000
+          },
+          {
+            "ym": "202608",
+            "avg": 42983
+          }
         ]
       },
       {
@@ -24030,7 +24606,7 @@
         },
         "jeonseCount": 50,
         "wolseCount": 14,
-        "trend": [
+        "trendSale": [
           {
             "ym": "202201",
             "avg": 96000
@@ -24094,6 +24670,40 @@
           {
             "ym": "202607",
             "avg": 85500
+          }
+        ],
+        "trendJeonse": [
+          {
+            "ym": "202109",
+            "avg": 43000
+          },
+          {
+            "ym": "202203",
+            "avg": 46575
+          },
+          {
+            "ym": "202207",
+            "avg": 55500
+          },
+          {
+            "ym": "202208",
+            "avg": 53000
+          },
+          {
+            "ym": "202309",
+            "avg": 60000
+          },
+          {
+            "ym": "202311",
+            "avg": 57500
+          },
+          {
+            "ym": "202411",
+            "avg": 60000
+          },
+          {
+            "ym": "202602",
+            "avg": 51500
           }
         ]
       }
@@ -24342,7 +24952,13 @@
         </div>
       </section>
 
-      <h3>5년 매매가 추이 (전월 대비 7% 급변하는 이상치 제외)</h3>
+      <div class="complex-chart-head">
+        <h3>5년 가격 추이 (전월 대비 7% 급변하는 이상치 제외)</h3>
+        <div class="chip-toggle" id="chart-deal-toggle">
+          <button data-v="매매">매매</button>
+          <button data-v="전세">전세</button>
+        </div>
+      </div>
       <div class="complex-chart" id="complex-chart"></div>
 
       <div class="table-wrap" style="margin-top:14px;">
@@ -24358,7 +24974,24 @@
       </div>
     `;
 
+    bindChartToggle(c);
     renderComplexChart(c);
+  }
+
+  // 차트에서 매매/전세 중 어느 걸 보여줄지 — 단지를 바꿔도 선택은 유지.
+  let chartDealType = "매매"; // "매매" | "전세"
+
+  function bindChartToggle(c) {
+    const el = document.getElementById("chart-deal-toggle");
+    el.querySelectorAll("button").forEach(btn => {
+      btn.setAttribute("aria-pressed", btn.dataset.v === chartDealType ? "true" : "false");
+      btn.addEventListener("click", () => {
+        if (chartDealType === btn.dataset.v) return;
+        chartDealType = btn.dataset.v;
+        el.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === chartDealType ? "true" : "false"));
+        renderComplexChart(c);
+      });
+    });
   }
 
   const SERIES_COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)", "var(--series-5)"];
@@ -24378,16 +25011,17 @@
     return best;
   }
 
-  // 단지 상세: 면적 종류별 5년 매매가 추이(이상치 제외, x축 연도 표시) 라인 차트.
+  // 단지 상세: 면적 종류별 5년 가격 추이(매매/전세 토글, 이상치 제외, x축 연도 표시) 라인 차트.
   function renderComplexChart(c) {
     const wrap = document.getElementById("complex-chart");
+    const trendKey = chartDealType === "전세" ? "trendJeonse" : "trendSale";
     // 색상은 면적 목록상의 원래 순서에 고정(필터링으로 계열이 빠져도 남은 계열 색이 안 바뀌게).
     const series = c.areaStats
-      .map((a, i) => ({ label: a.bucket, color: SERIES_COLORS[i % SERIES_COLORS.length], points: a.trend || [] }))
+      .map((a, i) => ({ label: a.bucket, color: SERIES_COLORS[i % SERIES_COLORS.length], points: a[trendKey] || [] }))
       .filter(s => s.points.length >= 2);
 
     if (!series.length) {
-      wrap.innerHTML = `<p class="empty">추이를 그릴 만큼 충분한 5년 매매 데이터가 없습니다.</p>`;
+      wrap.innerHTML = `<p class="empty">추이를 그릴 만큼 충분한 5년 ${chartDealType} 데이터가 없습니다.</p>`;
       return;
     }
 
@@ -24438,7 +25072,7 @@
 
     wrap.innerHTML = `
       <div class="chart-wrap">
-        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.name} 5년 매매가 추이 차트">
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.name} 5년 ${chartDealType} 추이 차트">
           <text class="axis-label" x="${padL}" y="${padT - 4}" text-anchor="start">만원</text>
           ${gridHtml}
           <line class="gridline" x1="${padL}" x2="${W - padR}" y1="${H - padB}" y2="${H - padB}"></line>

@@ -242,7 +242,8 @@ def build_complex_summaries(rows: list[dict], complexes: dict[str, dict]) -> lis
                 "jeonseLatest": {"price": int(jeonse_latest_row["price_or_deposit"]), "date": jeonse_latest_row["contract_date"]} if jeonse_latest_row else None,
                 "jeonseCount": len(jeonse),
                 "wolseCount": len(wolse),
-                "trend": group_trends.get((cid, "매매", bucket), []),  # 5년 매매 평균가 추이(이상치 제외)
+                "trendSale": group_trends.get((cid, "매매", bucket), []),  # 5년 매매 평균가 추이(이상치 제외)
+                "trendJeonse": group_trends.get((cid, "전세", bucket), []),  # 5년 전세 평균가 추이(이상치 제외)
             })
 
         sale_rows = [r for r in crows if r["deal_type"] == "매매"]

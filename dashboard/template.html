@@ -273,7 +273,17 @@
   .complex-detail .complex-meta { color: var(--text-dim); font-size: 0.82rem; margin-top: 6px; }
   .complex-detail .summary { margin-top: 14px; }
   .complex-detail .empty { color: var(--text-dim); padding: 24px 0; }
-  .complex-detail h3 { font-size: 0.95rem; margin-top: 20px; margin-bottom: 8px; }
+  .complex-detail h3 { font-size: 0.95rem; }
+  .complex-chart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+  .complex-chart-head .chip-toggle { max-width: none; }
 
   /* ---- 단지 상세: 매매가 추이 차트 ---- */
   .chart-wrap { position: relative; }
@@ -345,11 +355,16 @@
   <!--SUMMARY_END-->
 
   <div class="view-tabs" id="view-tabs" role="tablist" aria-label="보기 전환">
-    <button data-view="raw" role="tab" aria-selected="true">Raw Data</button>
-    <button data-view="complex" role="tab" aria-selected="false">단지 정보</button>
+    <button data-view="complex" role="tab" aria-selected="true">단지 정보</button>
+    <button data-view="raw" role="tab" aria-selected="false">Raw Data</button>
   </div>
 
-  <div id="view-raw">
+  <div id="view-complex">
+    <div class="complex-picker" id="complex-picker"></div>
+    <div class="complex-detail" id="complex-detail"></div>
+  </div>
+
+  <div id="view-raw" hidden>
 
   <section class="filters" aria-label="필터">
     <div class="filter-group">
@@ -409,11 +424,6 @@
     </table>
   </section>
 
-  </div>
-
-  <div id="view-complex" hidden>
-    <div class="complex-picker" id="complex-picker"></div>
-    <div class="complex-detail" id="complex-detail"></div>
   </div>
 
   <footer>
@@ -657,7 +667,13 @@
         </div>
       </section>
 
-      <h3>5년 매매가 추이 (전월 대비 7% 급변하는 이상치 제외)</h3>
+      <div class="complex-chart-head">
+        <h3>5년 가격 추이 (전월 대비 7% 급변하는 이상치 제외)</h3>
+        <div class="chip-toggle" id="chart-deal-toggle">
+          <button data-v="매매">매매</button>
+          <button data-v="전세">전세</button>
+        </div>
+      </div>
       <div class="complex-chart" id="complex-chart"></div>
 
       <div class="table-wrap" style="margin-top:14px;">
@@ -673,7 +689,24 @@
       </div>
     `;
 
+    bindChartToggle(c);
     renderComplexChart(c);
+  }
+
+  // 차트에서 매매/전세 중 어느 걸 보여줄지 — 단지를 바꿔도 선택은 유지.
+  let chartDealType = "매매"; // "매매" | "전세"
+
+  function bindChartToggle(c) {
+    const el = document.getElementById("chart-deal-toggle");
+    el.querySelectorAll("button").forEach(btn => {
+      btn.setAttribute("aria-pressed", btn.dataset.v === chartDealType ? "true" : "false");
+      btn.addEventListener("click", () => {
+        if (chartDealType === btn.dataset.v) return;
+        chartDealType = btn.dataset.v;
+        el.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === chartDealType ? "true" : "false"));
+        renderComplexChart(c);
+      });
+    });
   }
 
   const SERIES_COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)", "var(--series-5)"];
@@ -693,16 +726,17 @@
     return best;
   }
 
-  // 단지 상세: 면적 종류별 5년 매매가 추이(이상치 제외, x축 연도 표시) 라인 차트.
+  // 단지 상세: 면적 종류별 5년 가격 추이(매매/전세 토글, 이상치 제외, x축 연도 표시) 라인 차트.
   function renderComplexChart(c) {
     const wrap = document.getElementById("complex-chart");
+    const trendKey = chartDealType === "전세" ? "trendJeonse" : "trendSale";
     // 색상은 면적 목록상의 원래 순서에 고정(필터링으로 계열이 빠져도 남은 계열 색이 안 바뀌게).
     const series = c.areaStats
-      .map((a, i) => ({ label: a.bucket, color: SERIES_COLORS[i % SERIES_COLORS.length], points: a.trend || [] }))
+      .map((a, i) => ({ label: a.bucket, color: SERIES_COLORS[i % SERIES_COLORS.length], points: a[trendKey] || [] }))
       .filter(s => s.points.length >= 2);
 
     if (!series.length) {
-      wrap.innerHTML = `<p class="empty">추이를 그릴 만큼 충분한 5년 매매 데이터가 없습니다.</p>`;
+      wrap.innerHTML = `<p class="empty">추이를 그릴 만큼 충분한 5년 ${chartDealType} 데이터가 없습니다.</p>`;
       return;
     }
 
@@ -753,7 +787,7 @@
 
     wrap.innerHTML = `
       <div class="chart-wrap">
-        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.name} 5년 매매가 추이 차트">
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.name} 5년 ${chartDealType} 추이 차트">
           <text class="axis-label" x="${padL}" y="${padT - 4}" text-anchor="start">만원</text>
           ${gridHtml}
           <line class="gridline" x1="${padL}" x2="${W - padR}" y1="${H - padB}" y2="${H - padB}"></line>
