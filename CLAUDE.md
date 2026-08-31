@@ -11,8 +11,10 @@
 
 ## 구조
 
-- `config/complexes.json` — 추적 대상 단지 목록. `lawd_cd`(법정동코드), `name_variants`(API
-  응답 매칭용 별칭)를 관리.
+- `config/complexes.json` — 추적 대상 단지 목록(174개: 처음부터 추적하던 5개 + 대전
+  서구·유성구 500세대 이상 전체). `lawd_cd`(법정동코드), `name_variants`(API 응답
+  매칭용 별칭), `households`(세대수, 일부만 확보)를 관리. 169개는 `scripts/generate_complexes.py`로
+  일괄 추가했고 아직 실 API로 검증 안 됨(자세한 내용은 ApartPriceProgress.md 참고).
 - `collector/molit_api_client.py` — 국토부 API(`RTMSDataSvcAptTrade`, `RTMSDataSvcAptRent`)를
   호출해 대상 단지와 매칭되는 거래만 정규화, `data/trades.csv`에 upsert.
   실행: `set MOLIT_API_KEY=...` 후 `python collector/molit_api_client.py --months 3`
