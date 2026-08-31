@@ -1,10 +1,13 @@
 {
-  "_note": "lawd_cd는 국토부 API 실호출로 확인 완료(유성구=30200, 서구=30170). name_variants는 국토부 실거래가 응답의 '아파트' 필드가 등기상 정식 명칭과 다르게 표기되는 경우가 있어 매칭용으로 둔다.",
+  "_note": "lawd_cd는 국토부 API 실호출로 확인 완료(유성구=30200, 서구=30170). name_variants는 국토부 실거래가 응답의 '아파트' 필드가 등기상 정식 명칭과 다르게 표기되는 경우가 있어 매칭용으로 둔다. 2026-08-31: 서구/유성구 500세대 이상 단지 전체(나무위키 '공동주택/목록' 기준, MOLIT_API_KEY 없어 실API 미검증)를 일괄 추가함(id 접두사 seo-/yuseong-). name_variants가 나무위키 표기를 그대로 써서 실제 국토부 등록명과 다를 수 있음 — collector 최초 실행 후 반드시 data/trades.csv의 raw_apt_name을 훑어보고 (a) 전혀 매칭 안 된 단지, (b) 이름이 겹쳐 다른 단지 거래가 잘못 들어온 케이스(예: 예전 크로바아파트 사례)를 점검할 것.",
   "complexes": [
     {
       "id": "clover",
       "name": "크로바아파트",
-      "name_variants": ["크로바", "크로바아파트"],
+      "name_variants": [
+        "크로바",
+        "크로바아파트"
+      ],
       "region": "대전 서구 둔산동",
       "lawd_cd": "30170",
       "households": 1632,
@@ -13,30 +16,1732 @@
     {
       "id": "dunsan-xi-i-park",
       "name": "둔산자이아이파크",
-      "name_variants": ["둔산자이", "둔산아이파크", "자이아이파크"],
+      "name_variants": [
+        "둔산자이",
+        "둔산아이파크",
+        "자이아이파크"
+      ],
       "region": "대전 서구 둔산동",
       "lawd_cd": "30170"
     },
     {
       "id": "jukdong-cheonnyeonnamu",
       "name": "죽동천년나무아파트",
-      "name_variants": ["죽동천년나무5단지"],
+      "name_variants": [
+        "죽동천년나무5단지"
+      ],
       "region": "대전 유성구 죽동",
       "lawd_cd": "30200"
     },
     {
       "id": "cantabile",
       "name": "칸타빌",
-      "name_variants": ["죽동대원칸타빌"],
+      "name_variants": [
+        "죽동대원칸타빌"
+      ],
       "region": "대전 유성구 죽동",
-      "lawd_cd": "30200"
+      "lawd_cd": "30200",
+      "households": 1132
     },
     {
       "id": "yemiji",
       "name": "예미지",
-      "name_variants": ["죽동금성백조예미지"],
+      "name_variants": [
+        "죽동금성백조예미지"
+      ],
       "region": "대전 유성구",
-      "lawd_cd": "30200"
+      "lawd_cd": "30200",
+      "households": 998
+    },
+    {
+      "id": "seo-001",
+      "name": "가장 삼성래미안",
+      "name_variants": [
+        "가장삼성래미안"
+      ],
+      "region": "대전 서구 가장동",
+      "lawd_cd": "30170",
+      "households": 2398
+    },
+    {
+      "id": "seo-002",
+      "name": "가람아파트",
+      "name_variants": [
+        "가람아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 1260
+    },
+    {
+      "id": "seo-003",
+      "name": "갈마아파트",
+      "name_variants": [
+        "갈마아파트"
+      ],
+      "region": "대전 서구 갈마동",
+      "lawd_cd": "30170",
+      "households": 1980
+    },
+    {
+      "id": "seo-004",
+      "name": "갑천3 트리풀시티 레이크포레",
+      "name_variants": [
+        "갑천3트리풀시티레이크포레"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 1762
+    },
+    {
+      "id": "seo-005",
+      "name": "경성큰마을아파트",
+      "name_variants": [
+        "경성큰마을아파트"
+      ],
+      "region": "대전 서구 갈마동",
+      "lawd_cd": "30170",
+      "households": 2910
+    },
+    {
+      "id": "seo-006",
+      "name": "공작한양아파트",
+      "name_variants": [
+        "공작한양아파트"
+      ],
+      "region": "대전 서구 탄방동",
+      "lawd_cd": "30170",
+      "households": 1074
+    },
+    {
+      "id": "seo-007",
+      "name": "구봉마을 5단지 주공",
+      "name_variants": [
+        "구봉마을5단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 1000
+    },
+    {
+      "id": "seo-008",
+      "name": "구봉마을 7단지 주공",
+      "name_variants": [
+        "구봉마을7단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 1188
+    },
+    {
+      "id": "seo-009",
+      "name": "구봉마을 8단지 주공",
+      "name_variants": [
+        "구봉마을8단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 2187
+    },
+    {
+      "id": "seo-010",
+      "name": "구봉마을 9단지 주공",
+      "name_variants": [
+        "구봉마을9단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 1031
+    },
+    {
+      "id": "seo-011",
+      "name": "국화아파트",
+      "name_variants": [
+        "국화아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 2910
+    },
+    {
+      "id": "seo-012",
+      "name": "관저5지구 3단지 다온숲",
+      "name_variants": [
+        "관저5지구3단지다온숲"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 1401
+    },
+    {
+      "id": "seo-013",
+      "name": "샘머리 2단지",
+      "name_variants": [
+        "샘머리2단지"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 2200
+    },
+    {
+      "id": "seo-014",
+      "name": "누리아파트",
+      "name_variants": [
+        "누리아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1740
+    },
+    {
+      "id": "seo-015",
+      "name": "녹원아파트",
+      "name_variants": [
+        "녹원아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 1200
+    },
+    {
+      "id": "seo-016",
+      "name": "내동 롯데아파트",
+      "name_variants": [
+        "내동롯데아파트"
+      ],
+      "region": "대전 서구 내동",
+      "lawd_cd": "30170",
+      "households": 1632
+    },
+    {
+      "id": "seo-017",
+      "name": "다모아아파트",
+      "name_variants": [
+        "다모아아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1260
+    },
+    {
+      "id": "seo-018",
+      "name": "도마동 경남 2단지",
+      "name_variants": [
+        "도마동경남2단지"
+      ],
+      "region": "대전 서구 도마동",
+      "lawd_cd": "30170",
+      "households": 1475
+    },
+    {
+      "id": "seo-019",
+      "name": "도안 아이파크",
+      "name_variants": [
+        "도안아이파크"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 1053
+    },
+    {
+      "id": "seo-020",
+      "name": "도안 수목토",
+      "name_variants": [
+        "도안수목토"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 1253
+    },
+    {
+      "id": "seo-021",
+      "name": "도안 리슈빌",
+      "name_variants": [
+        "도안리슈빌"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 1236
+    },
+    {
+      "id": "seo-022",
+      "name": "도안 린풀하우스",
+      "name_variants": [
+        "도안린풀하우스"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 1691
+    },
+    {
+      "id": "seo-023",
+      "name": "둥지아파트",
+      "name_variants": [
+        "둥지아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 1230
+    },
+    {
+      "id": "seo-024",
+      "name": "맑은아침아파트",
+      "name_variants": [
+        "맑은아침아파트"
+      ],
+      "region": "대전 서구 내동",
+      "lawd_cd": "30170",
+      "households": 2199
+    },
+    {
+      "id": "seo-025",
+      "name": "목련아파트",
+      "name_variants": [
+        "목련아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 1116
+    },
+    {
+      "id": "seo-026",
+      "name": "복수센트럴자이",
+      "name_variants": [
+        "복수센트럴자이"
+      ],
+      "region": "대전 서구 복수동",
+      "lawd_cd": "30170",
+      "households": 1102
+    },
+    {
+      "id": "seo-027",
+      "name": "상록수아파트",
+      "name_variants": [
+        "상록수아파트"
+      ],
+      "region": "대전 서구 만년동",
+      "lawd_cd": "30170",
+      "households": 1116
+    },
+    {
+      "id": "seo-028",
+      "name": "수정타운아파트",
+      "name_variants": [
+        "수정타운아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 2010
+    },
+    {
+      "id": "seo-029",
+      "name": "샘머리 1단지",
+      "name_variants": [
+        "샘머리1단지"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 1350
+    },
+    {
+      "id": "seo-030",
+      "name": "원앙마을 2단지 주공",
+      "name_variants": [
+        "원앙마을2단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 1734
+    },
+    {
+      "id": "seo-031",
+      "name": "원앙마을 3단지 대자연마을",
+      "name_variants": [
+        "원앙마을3단지대자연마을"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 1251
+    },
+    {
+      "id": "seo-032",
+      "name": "원앙마을 4단지 주공",
+      "name_variants": [
+        "원앙마을4단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 1886
+    },
+    {
+      "id": "seo-033",
+      "name": "은뜰마을 둔산주공 1단지",
+      "name_variants": [
+        "은뜰마을둔산주공1단지"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1491
+    },
+    {
+      "id": "seo-034",
+      "name": "은뜰마을 둔산주공 2단지",
+      "name_variants": [
+        "은뜰마을둔산주공2단지"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1130
+    },
+    {
+      "id": "seo-035",
+      "name": "은뜰마을 둔산주공 3단지",
+      "name_variants": [
+        "은뜰마을둔산주공3단지"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1403
+    },
+    {
+      "id": "seo-036",
+      "name": "정림 우성아파트",
+      "name_variants": [
+        "정림우성아파트"
+      ],
+      "region": "대전 서구 정림동",
+      "lawd_cd": "30170",
+      "households": 1980
+    },
+    {
+      "id": "seo-037",
+      "name": "진달래아파트",
+      "name_variants": [
+        "진달래아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1080
+    },
+    {
+      "id": "seo-038",
+      "name": "초원아파트",
+      "name_variants": [
+        "초원아파트"
+      ],
+      "region": "대전 서구 만년동",
+      "lawd_cd": "30170",
+      "households": 1230
+    },
+    {
+      "id": "seo-039",
+      "name": "향촌아파트",
+      "name_variants": [
+        "향촌아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 1650
+    },
+    {
+      "id": "seo-040",
+      "name": "한마루아파트",
+      "name_variants": [
+        "한마루아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 1400
+    },
+    {
+      "id": "seo-041",
+      "name": "한가람아파트",
+      "name_variants": [
+        "한가람아파트"
+      ],
+      "region": "대전 서구 탄방동",
+      "lawd_cd": "30170",
+      "households": 1380
+    },
+    {
+      "id": "seo-042",
+      "name": "하나로아파트",
+      "name_variants": [
+        "하나로아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1350
+    },
+    {
+      "id": "seo-043",
+      "name": "황실타운아파트",
+      "name_variants": [
+        "황실타운아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 1950
+    },
+    {
+      "id": "seo-044",
+      "name": "관저 예미지 명가의 풍경",
+      "name_variants": [
+        "관저예미지명가의풍경"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 994
+    },
+    {
+      "id": "seo-045",
+      "name": "청솔아파트",
+      "name_variants": [
+        "청솔아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 980
+    },
+    {
+      "id": "seo-046",
+      "name": "도안 베르디움",
+      "name_variants": [
+        "도안베르디움"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 970
+    },
+    {
+      "id": "seo-047",
+      "name": "관저 더샵 1단지",
+      "name_variants": [
+        "관저더샵1단지"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 954
+    },
+    {
+      "id": "seo-048",
+      "name": "관저 더샵 2단지",
+      "name_variants": [
+        "관저더샵2단지"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 954
+    },
+    {
+      "id": "seo-049",
+      "name": "삼익목화1차",
+      "name_variants": [
+        "삼익목화1차"
+      ],
+      "region": "대전 서구 복수동",
+      "lawd_cd": "30170",
+      "households": 948
+    },
+    {
+      "id": "seo-050",
+      "name": "구봉마을 6단지 신선마을",
+      "name_variants": [
+        "구봉마을6단지신선마을"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 940
+    },
+    {
+      "id": "seo-051",
+      "name": "느리울마을 11단지 주공",
+      "name_variants": [
+        "느리울마을11단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 940
+    },
+    {
+      "id": "seo-052",
+      "name": "도안 한라비발디",
+      "name_variants": [
+        "도안한라비발디"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 885
+    },
+    {
+      "id": "seo-053",
+      "name": "느리울마을 13단지 주공",
+      "name_variants": [
+        "느리울마을13단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 880
+    },
+    {
+      "id": "seo-054",
+      "name": "보라 1단지",
+      "name_variants": [
+        "보라1단지"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 870
+    },
+    {
+      "id": "seo-055",
+      "name": "관저5지구 5단지 어반힐스",
+      "name_variants": [
+        "관저5지구5단지어반힐스"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 819
+    },
+    {
+      "id": "seo-056",
+      "name": "은하수아파트",
+      "name_variants": [
+        "은하수아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 816
+    },
+    {
+      "id": "seo-057",
+      "name": "강변아파트",
+      "name_variants": [
+        "강변아파트"
+      ],
+      "region": "대전 서구 만년동",
+      "lawd_cd": "30170",
+      "households": 788
+    },
+    {
+      "id": "seo-058",
+      "name": "가수원 계룡아파트",
+      "name_variants": [
+        "가수원계룡아파트"
+      ],
+      "region": "대전 서구 가수원동",
+      "lawd_cd": "30170",
+      "households": 780
+    },
+    {
+      "id": "seo-059",
+      "name": "한아름아파트",
+      "name_variants": [
+        "한아름아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 780
+    },
+    {
+      "id": "seo-060",
+      "name": "e편한세상 둔산",
+      "name_variants": [
+        "e편한세상둔산"
+      ],
+      "region": "대전 서구 탄방동",
+      "lawd_cd": "30170",
+      "households": 776
+    },
+    {
+      "id": "seo-061",
+      "name": "초록마을 5단지 중흥S-클래스",
+      "name_variants": [
+        "초록마을5단지중흥S-클래스"
+      ],
+      "region": "대전 서구 복수동",
+      "lawd_cd": "30170",
+      "households": 761
+    },
+    {
+      "id": "seo-062",
+      "name": "은아 1단지",
+      "name_variants": [
+        "은아1단지"
+      ],
+      "region": "대전 서구 가수원동",
+      "lawd_cd": "30170",
+      "households": 754
+    },
+    {
+      "id": "seo-063",
+      "name": "느리울마을 12단지 주공",
+      "name_variants": [
+        "느리울마을12단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 750
+    },
+    {
+      "id": "seo-064",
+      "name": "관저 리슈빌",
+      "name_variants": [
+        "관저리슈빌"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 748
+    },
+    {
+      "id": "seo-065",
+      "name": "효성타운아파트",
+      "name_variants": [
+        "효성타운아파트"
+      ],
+      "region": "대전 서구 도마동",
+      "lawd_cd": "30170",
+      "households": 746
+    },
+    {
+      "id": "seo-066",
+      "name": "내동 코오롱아파트",
+      "name_variants": [
+        "내동코오롱아파트"
+      ],
+      "region": "대전 서구 내동",
+      "lawd_cd": "30170",
+      "households": 730
+    },
+    {
+      "id": "seo-067",
+      "name": "벽산 늘푸른아파트",
+      "name_variants": [
+        "벽산늘푸른아파트"
+      ],
+      "region": "대전 서구 정림동",
+      "lawd_cd": "30170",
+      "households": 720
+    },
+    {
+      "id": "seo-068",
+      "name": "상아아파트",
+      "name_variants": [
+        "상아아파트"
+      ],
+      "region": "대전 서구 만년동",
+      "lawd_cd": "30170",
+      "households": 718
+    },
+    {
+      "id": "seo-069",
+      "name": "은아 5단지",
+      "name_variants": [
+        "은아5단지"
+      ],
+      "region": "대전 서구 가수원동",
+      "lawd_cd": "30170",
+      "households": 720
+    },
+    {
+      "id": "seo-070",
+      "name": "초록마을 2단지 현진에버빌",
+      "name_variants": [
+        "초록마을2단지현진에버빌"
+      ],
+      "region": "대전 서구 복수동",
+      "lawd_cd": "30170",
+      "households": 708
+    },
+    {
+      "id": "seo-071",
+      "name": "동산맨션",
+      "name_variants": [
+        "동산맨션"
+      ],
+      "region": "대전 서구 갈마동",
+      "lawd_cd": "30170",
+      "households": 700
+    },
+    {
+      "id": "seo-072",
+      "name": "원양마을 1단지 주공",
+      "name_variants": [
+        "원양마을1단지주공"
+      ],
+      "region": "대전 서구 관저동",
+      "lawd_cd": "30170",
+      "households": 660
+    },
+    {
+      "id": "seo-073",
+      "name": "햇님아파트",
+      "name_variants": [
+        "햇님아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 660
+    },
+    {
+      "id": "seo-074",
+      "name": "산호아파트",
+      "name_variants": [
+        "산호아파트"
+      ],
+      "region": "대전 서구 탄방동",
+      "lawd_cd": "30170",
+      "households": 654
+    },
+    {
+      "id": "seo-075",
+      "name": "복수 계룡아파트",
+      "name_variants": [
+        "복수계룡아파트"
+      ],
+      "region": "대전 서구 복수동",
+      "lawd_cd": "30170",
+      "households": 648
+    },
+    {
+      "id": "seo-076",
+      "name": "도안 예미지",
+      "name_variants": [
+        "도안예미지"
+      ],
+      "region": "대전 서구 도안동",
+      "lawd_cd": "30170",
+      "households": 645
+    },
+    {
+      "id": "seo-077",
+      "name": "무궁화아파트",
+      "name_variants": [
+        "무궁화아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 630
+    },
+    {
+      "id": "seo-078",
+      "name": "보라 2단지",
+      "name_variants": [
+        "보라2단지"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 620
+    },
+    {
+      "id": "seo-079",
+      "name": "백합아파트",
+      "name_variants": [
+        "백합아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 622
+    },
+    {
+      "id": "seo-080",
+      "name": "무지개아파트",
+      "name_variants": [
+        "무지개아파트"
+      ],
+      "region": "대전 서구 월평동",
+      "lawd_cd": "30170",
+      "households": 600
+    },
+    {
+      "id": "seo-081",
+      "name": "한우리아파트",
+      "name_variants": [
+        "한우리아파트"
+      ],
+      "region": "대전 서구 탄방동",
+      "lawd_cd": "30170",
+      "households": 598
+    },
+    {
+      "id": "seo-082",
+      "name": "오량마을 마루미아파트",
+      "name_variants": [
+        "오량마을마루미아파트"
+      ],
+      "region": "대전 서구 복수동",
+      "lawd_cd": "30170",
+      "households": 574
+    },
+    {
+      "id": "seo-083",
+      "name": "괴정 한신아파트",
+      "name_variants": [
+        "괴정한신아파트"
+      ],
+      "region": "대전 서구 괴정동",
+      "lawd_cd": "30170",
+      "households": 542
+    },
+    {
+      "id": "seo-084",
+      "name": "꿈나무아파트",
+      "name_variants": [
+        "꿈나무아파트"
+      ],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170",
+      "households": 540
+    },
+    {
+      "id": "seo-085",
+      "name": "코오롱 강변들보람아파트",
+      "name_variants": [
+        "코오롱강변들보람아파트"
+      ],
+      "region": "대전 서구 정림동",
+      "lawd_cd": "30170",
+      "households": 510
+    },
+    {
+      "id": "yuseong-001",
+      "name": "엑스포아파트",
+      "name_variants": [
+        "엑스포아파트"
+      ],
+      "region": "대전 유성구 전민동",
+      "lawd_cd": "30200",
+      "households": 3958
+    },
+    {
+      "id": "yuseong-002",
+      "name": "호반써밋 그랜드파크",
+      "name_variants": [
+        "호반써밋그랜드파크"
+      ],
+      "region": "대전 유성구 용산동",
+      "lawd_cd": "30200",
+      "households": 3538
+    },
+    {
+      "id": "yuseong-003",
+      "name": "한빛아파트",
+      "name_variants": [
+        "한빛아파트"
+      ],
+      "region": "대전 유성구 어은동",
+      "lawd_cd": "30200",
+      "households": 3144
+    },
+    {
+      "id": "yuseong-004",
+      "name": "송강 그린아파트",
+      "name_variants": [
+        "송강그린아파트"
+      ],
+      "region": "대전 유성구 송강동",
+      "lawd_cd": "30200",
+      "households": 1830
+    },
+    {
+      "id": "yuseong-005",
+      "name": "도안마을 9단지 트리풀시티",
+      "name_variants": [
+        "도안마을9단지트리풀시티"
+      ],
+      "region": "대전 유성구 상대동",
+      "lawd_cd": "30200",
+      "households": 1828
+    },
+    {
+      "id": "yuseong-006",
+      "name": "도안마을 1단지 LH",
+      "name_variants": [
+        "도안마을1단지LH"
+      ],
+      "region": "대전 유성구 봉명동",
+      "lawd_cd": "30200",
+      "households": 1668
+    },
+    {
+      "id": "yuseong-007",
+      "name": "도안마을 10단지 휴먼시아",
+      "name_variants": [
+        "도안마을10단지휴먼시아"
+      ],
+      "region": "대전 유성구 원신흥동",
+      "lawd_cd": "30200",
+      "households": 1647
+    },
+    {
+      "id": "yuseong-008",
+      "name": "도안마을 11단지 천년나무",
+      "name_variants": [
+        "도안마을11단지천년나무"
+      ],
+      "region": "대전 유성구 봉명동",
+      "lawd_cd": "30200",
+      "households": 1460
+    },
+    {
+      "id": "yuseong-009",
+      "name": "송강 청솔아파트",
+      "name_variants": [
+        "송강청솔아파트"
+      ],
+      "region": "대전 유성구 송강동",
+      "lawd_cd": "30200",
+      "households": 1446
+    },
+    {
+      "id": "yuseong-010",
+      "name": "진잠타운아파트",
+      "name_variants": [
+        "진잠타운아파트"
+      ],
+      "region": "대전 유성구 원내동",
+      "lawd_cd": "30200",
+      "households": 1320
+    },
+    {
+      "id": "yuseong-011",
+      "name": "도안마을 5단지 트리풀시티",
+      "name_variants": [
+        "도안마을5단지트리풀시티"
+      ],
+      "region": "대전 유성구 상대동",
+      "lawd_cd": "30200",
+      "households": 1220
+    },
+    {
+      "id": "yuseong-012",
+      "name": "도안마을 4단지 휴먼시아",
+      "name_variants": [
+        "도안마을4단지휴먼시아"
+      ],
+      "region": "대전 유성구 상대동",
+      "lawd_cd": "30200",
+      "households": 1216
+    },
+    {
+      "id": "yuseong-013",
+      "name": "송강 한마을아파트",
+      "name_variants": [
+        "송강한마을아파트"
+      ],
+      "region": "대전 유성구 송강동",
+      "lawd_cd": "30200",
+      "households": 1206
+    },
+    {
+      "id": "yuseong-014",
+      "name": "문지 효성해링턴 플레이스",
+      "name_variants": [
+        "문지효성해링턴플레이스"
+      ],
+      "region": "대전 유성구 문지동",
+      "lawd_cd": "30200",
+      "households": 1142
+    },
+    {
+      "id": "yuseong-015",
+      "name": "갑천1 트리풀시티 힐스테이트",
+      "name_variants": [
+        "갑천1트리풀시티힐스테이트"
+      ],
+      "region": "대전 유성구 원신흥동",
+      "lawd_cd": "30200",
+      "households": 1116
+    },
+    {
+      "id": "yuseong-016",
+      "name": "도안 예미지 백조의 호수",
+      "name_variants": [
+        "도안예미지백조의호수"
+      ],
+      "region": "대전 유성구 봉명동",
+      "lawd_cd": "30200",
+      "households": 1102
+    },
+    {
+      "id": "yuseong-017",
+      "name": "열매마을 4단지 현대계룡",
+      "name_variants": [
+        "열매마을4단지현대계룡"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 1084
+    },
+    {
+      "id": "yuseong-018",
+      "name": "도안 어울림하트",
+      "name_variants": [
+        "도안어울림하트"
+      ],
+      "region": "대전 유성구 원신흥동",
+      "lawd_cd": "30200",
+      "households": 1056
+    },
+    {
+      "id": "yuseong-019",
+      "name": "대덕테크노밸리 10단지 한화꿈에그린",
+      "name_variants": [
+        "대덕테크노밸리10단지한화꿈에그린"
+      ],
+      "region": "대전 유성구 관평동",
+      "lawd_cd": "30200",
+      "households": 1001
+    },
+    {
+      "id": "yuseong-020",
+      "name": "학하 2단지 오투그란데 미학",
+      "name_variants": [
+        "학하2단지오투그란데미학"
+      ],
+      "region": "대전 유성구 계산동",
+      "lawd_cd": "30200",
+      "households": 1000
+    },
+    {
+      "id": "yuseong-021",
+      "name": "노은 한화꿈에그린 2단지",
+      "name_variants": [
+        "노은한화꿈에그린2단지"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 998
+    },
+    {
+      "id": "yuseong-022",
+      "name": "봉산 하늘바람 휴먼시아 1단지",
+      "name_variants": [
+        "봉산하늘바람휴먼시아1단지"
+      ],
+      "region": "대전 유성구 봉산동",
+      "lawd_cd": "30200",
+      "households": 990
+    },
+    {
+      "id": "yuseong-023",
+      "name": "세종아파트",
+      "name_variants": [
+        "세종아파트"
+      ],
+      "region": "대전 유성구 전민동",
+      "lawd_cd": "30200",
+      "households": 980
+    },
+    {
+      "id": "yuseong-024",
+      "name": "도안 호반베르디움 2단지",
+      "name_variants": [
+        "도안호반베르디움2단지"
+      ],
+      "region": "대전 유성구 봉명동",
+      "lawd_cd": "30200",
+      "households": 970
+    },
+    {
+      "id": "yuseong-025",
+      "name": "열매마을 10단지 상록아파트",
+      "name_variants": [
+        "열매마을10단지상록아파트"
+      ],
+      "region": "대전 유성구 노은동",
+      "lawd_cd": "30200",
+      "households": 940
+    },
+    {
+      "id": "yuseong-026",
+      "name": "대덕테크노밸리 5단지 신동아파밀리에",
+      "name_variants": [
+        "대덕테크노밸리5단지신동아파밀리에"
+      ],
+      "region": "대전 유성구 관평동",
+      "lawd_cd": "30200",
+      "households": 922
+    },
+    {
+      "id": "yuseong-027",
+      "name": "노은 한화꿈에그린 1단지",
+      "name_variants": [
+        "노은한화꿈에그린1단지"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 887
+    },
+    {
+      "id": "yuseong-028",
+      "name": "열매마을 7단지 현대아이",
+      "name_variants": [
+        "열매마을7단지현대아이"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 886
+    },
+    {
+      "id": "yuseong-029",
+      "name": "신우한아름아파트",
+      "name_variants": [
+        "신우한아름아파트"
+      ],
+      "region": "대전 유성구 원내동",
+      "lawd_cd": "30200",
+      "households": 864
+    },
+    {
+      "id": "yuseong-030",
+      "name": "송림마을 4단지 주공",
+      "name_variants": [
+        "송림마을4단지주공"
+      ],
+      "region": "대전 유성구 하기동",
+      "lawd_cd": "30200",
+      "households": 861
+    },
+    {
+      "id": "yuseong-031",
+      "name": "도안 6단지 센트럴시티",
+      "name_variants": [
+        "도안6단지센트럴시티"
+      ],
+      "region": "대전 유성구 봉명동",
+      "lawd_cd": "30200",
+      "households": 854
+    },
+    {
+      "id": "yuseong-032",
+      "name": "봉산 휴먼시아 2단지",
+      "name_variants": [
+        "봉산휴먼시아2단지"
+      ],
+      "region": "대전 유성구 봉산동",
+      "lawd_cd": "30200",
+      "households": 854
+    },
+    {
+      "id": "yuseong-033",
+      "name": "대림 두레아파트",
+      "name_variants": [
+        "대림두레아파트"
+      ],
+      "region": "대전 유성구 신성동",
+      "lawd_cd": "30200",
+      "households": 840
+    },
+    {
+      "id": "yuseong-034",
+      "name": "반석마을 7단지 삼부르네상스",
+      "name_variants": [
+        "반석마을7단지삼부르네상스"
+      ],
+      "region": "대전 유성구 반석동",
+      "lawd_cd": "30200",
+      "households": 834
+    },
+    {
+      "id": "yuseong-035",
+      "name": "청구나래아파트",
+      "name_variants": [
+        "청구나래아파트"
+      ],
+      "region": "대전 유성구 전민동",
+      "lawd_cd": "30200",
+      "households": 829
+    },
+    {
+      "id": "yuseong-036",
+      "name": "열매마을 8단지 새미래",
+      "name_variants": [
+        "열매마을8단지새미래"
+      ],
+      "region": "대전 유성구 노은동",
+      "lawd_cd": "30200",
+      "households": 814
+    },
+    {
+      "id": "yuseong-037",
+      "name": "한울아파트",
+      "name_variants": [
+        "한울아파트"
+      ],
+      "region": "대전 유성구 신성동",
+      "lawd_cd": "30200",
+      "households": 814
+    },
+    {
+      "id": "yuseong-038",
+      "name": "샘물타운아파트",
+      "name_variants": [
+        "샘물타운아파트"
+      ],
+      "region": "대전 유성구 원내동",
+      "lawd_cd": "30200",
+      "households": 788
+    },
+    {
+      "id": "yuseong-039",
+      "name": "학하 3단지 오투그란데 리빙포레",
+      "name_variants": [
+        "학하3단지오투그란데리빙포레"
+      ],
+      "region": "대전 유성구 계산동",
+      "lawd_cd": "30200",
+      "households": 788
+    },
+    {
+      "id": "yuseong-040",
+      "name": "도안 3단지 한라비발디",
+      "name_variants": [
+        "도안3단지한라비발디"
+      ],
+      "region": "대전 유성구 상대동",
+      "lawd_cd": "30200",
+      "households": 752
+    },
+    {
+      "id": "yuseong-041",
+      "name": "한승 미메이드아파트",
+      "name_variants": [
+        "한승미메이드아파트"
+      ],
+      "region": "대전 유성구 교촌동",
+      "lawd_cd": "30200",
+      "households": 737
+    },
+    {
+      "id": "yuseong-042",
+      "name": "럭키 하나아파트",
+      "name_variants": [
+        "럭키하나아파트"
+      ],
+      "region": "대전 유성구 신성동",
+      "lawd_cd": "30200",
+      "households": 720
+    },
+    {
+      "id": "yuseong-043",
+      "name": "송림마을 3단지 이노스빌",
+      "name_variants": [
+        "송림마을3단지이노스빌"
+      ],
+      "region": "대전 유성구 하기동",
+      "lawd_cd": "30200",
+      "households": 713
+    },
+    {
+      "id": "yuseong-044",
+      "name": "스마트시티",
+      "name_variants": [
+        "스마트시티"
+      ],
+      "region": "대전 유성구 도룡동",
+      "lawd_cd": "30200",
+      "households": 708
+    },
+    {
+      "id": "yuseong-045",
+      "name": "학하 리슈빌 학의뜰",
+      "name_variants": [
+        "학하리슈빌학의뜰"
+      ],
+      "region": "대전 유성구 계산동",
+      "lawd_cd": "30200",
+      "households": 704
+    },
+    {
+      "id": "yuseong-046",
+      "name": "대덕테크노밸리 6단지 운암네오미아",
+      "name_variants": [
+        "대덕테크노밸리6단지운암네오미아"
+      ],
+      "region": "대전 유성구 관평동",
+      "lawd_cd": "30200",
+      "households": 703
+    },
+    {
+      "id": "yuseong-047",
+      "name": "노은LH네이처뷰3단지",
+      "name_variants": [
+        "노은LH네이처뷰3단지"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 687
+    },
+    {
+      "id": "yuseong-048",
+      "name": "대덕테크노밸리 2단지 푸르지오",
+      "name_variants": [
+        "대덕테크노밸리2단지푸르지오"
+      ],
+      "region": "대전 유성구 관평동",
+      "lawd_cd": "30200",
+      "households": 684
+    },
+    {
+      "id": "yuseong-049",
+      "name": "드리움 1단지",
+      "name_variants": [
+        "드리움1단지"
+      ],
+      "region": "대전 유성구 대정동",
+      "lawd_cd": "30200",
+      "households": 676
+    },
+    {
+      "id": "yuseong-050",
+      "name": "송강마을 2단지",
+      "name_variants": [
+        "송강마을2단지"
+      ],
+      "region": "대전 유성구 송강동",
+      "lawd_cd": "30200",
+      "households": 675
+    },
+    {
+      "id": "yuseong-051",
+      "name": "삼성 푸른아파트",
+      "name_variants": [
+        "삼성푸른아파트"
+      ],
+      "region": "대전 유성구 전민동",
+      "lawd_cd": "30200",
+      "households": 672
+    },
+    {
+      "id": "yuseong-052",
+      "name": "대덕테크노밸리 1단지 꿈에그린",
+      "name_variants": [
+        "대덕테크노밸리1단지꿈에그린"
+      ],
+      "region": "대전 유성구 관평동",
+      "lawd_cd": "30200",
+      "households": 666
+    },
+    {
+      "id": "yuseong-053",
+      "name": "송강마을 1단지",
+      "name_variants": [
+        "송강마을1단지"
+      ],
+      "region": "대전 유성구 송강동",
+      "lawd_cd": "30200",
+      "households": 660
+    },
+    {
+      "id": "yuseong-054",
+      "name": "노은새미래숲2단지",
+      "name_variants": [
+        "노은새미래숲2단지"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 655
+    },
+    {
+      "id": "yuseong-055",
+      "name": "반석 더샵",
+      "name_variants": [
+        "반석더샵"
+      ],
+      "region": "대전 유성구 반석동",
+      "lawd_cd": "30200",
+      "households": 650
+    },
+    {
+      "id": "yuseong-056",
+      "name": "열매마을 9단지 금성백조",
+      "name_variants": [
+        "열매마을9단지금성백조"
+      ],
+      "region": "대전 유성구 노은동",
+      "lawd_cd": "30200",
+      "households": 646
+    },
+    {
+      "id": "yuseong-057",
+      "name": "반석마을 6단지 삼부르네상스",
+      "name_variants": [
+        "반석마을6단지삼부르네상스"
+      ],
+      "region": "대전 유성구 반석동",
+      "lawd_cd": "30200",
+      "households": 645
+    },
+    {
+      "id": "yuseong-058",
+      "name": "반석마을 8단지 주공",
+      "name_variants": [
+        "반석마을8단지주공"
+      ],
+      "region": "대전 유성구 반석동",
+      "lawd_cd": "30200",
+      "households": 642
+    },
+    {
+      "id": "yuseong-059",
+      "name": "죽동 푸르지오",
+      "name_variants": [
+        "죽동푸르지오"
+      ],
+      "region": "대전 유성구 죽동",
+      "lawd_cd": "30200",
+      "households": 638
+    },
+    {
+      "id": "yuseong-060",
+      "name": "열매마을 11단지 리슈빌",
+      "name_variants": [
+        "열매마을11단지리슈빌"
+      ],
+      "region": "대전 유성구 노은동",
+      "lawd_cd": "30200",
+      "households": 635
+    },
+    {
+      "id": "yuseong-061",
+      "name": "노은3지구 4단지 LH",
+      "name_variants": [
+        "노은3지구4단지LH"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 624
+    },
+    {
+      "id": "yuseong-062",
+      "name": "영무예다음 에코타운",
+      "name_variants": [
+        "영무예다음에코타운"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 615
+    },
+    {
+      "id": "yuseong-063",
+      "name": "송림마을 5단지 그리운",
+      "name_variants": [
+        "송림마을5단지그리운"
+      ],
+      "region": "대전 유성구 하기동",
+      "lawd_cd": "30200",
+      "households": 613
+    },
+    {
+      "id": "yuseong-064",
+      "name": "반석마을 3단지 호반베르디움",
+      "name_variants": [
+        "반석마을3단지호반베르디움"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 607
+    },
+    {
+      "id": "yuseong-065",
+      "name": "반석마을 4단지 주공",
+      "name_variants": [
+        "반석마을4단지주공"
+      ],
+      "region": "대전 유성구 반석동",
+      "lawd_cd": "30200",
+      "households": 605
+    },
+    {
+      "id": "yuseong-066",
+      "name": "노은3지구 1단지 LH",
+      "name_variants": [
+        "노은3지구1단지LH"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 600
+    },
+    {
+      "id": "yuseong-067",
+      "name": "드리움 2단지",
+      "name_variants": [
+        "드리움2단지"
+      ],
+      "region": "대전 유성구 대정동",
+      "lawd_cd": "30200",
+      "households": 600
+    },
+    {
+      "id": "yuseong-068",
+      "name": "대우이수 드림월드아파트",
+      "name_variants": [
+        "대우이수드림월드아파트"
+      ],
+      "region": "대전 유성구 장대동",
+      "lawd_cd": "30200",
+      "households": 592
+    },
+    {
+      "id": "yuseong-069",
+      "name": "열매마을 3단지 대우",
+      "name_variants": [
+        "열매마을3단지대우"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 588
+    },
+    {
+      "id": "yuseong-070",
+      "name": "열매마을 6단지 현대아이",
+      "name_variants": [
+        "열매마을6단지현대아이"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 582
+    },
+    {
+      "id": "yuseong-071",
+      "name": "장대 푸르지오",
+      "name_variants": [
+        "장대푸르지오"
+      ],
+      "region": "대전 유성구 장대동",
+      "lawd_cd": "30200",
+      "households": 562
+    },
+    {
+      "id": "yuseong-072",
+      "name": "반석마을 2단지 계룡리슈빌",
+      "name_variants": [
+        "반석마을2단지계룡리슈빌"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 561
+    },
+    {
+      "id": "yuseong-073",
+      "name": "신성 월드컵패밀리타운",
+      "name_variants": [
+        "신성월드컵패밀리타운"
+      ],
+      "region": "대전 유성구 장대동",
+      "lawd_cd": "30200",
+      "households": 556
+    },
+    {
+      "id": "yuseong-074",
+      "name": "운암네오미아",
+      "name_variants": [
+        "운암네오미아"
+      ],
+      "region": "대전 유성구 덕명동",
+      "lawd_cd": "30200",
+      "households": 544
+    },
+    {
+      "id": "yuseong-075",
+      "name": "도안 신안인스빌",
+      "name_variants": [
+        "도안신안인스빌"
+      ],
+      "region": "대전 유성구 원신흥동",
+      "lawd_cd": "30200",
+      "households": 540
+    },
+    {
+      "id": "yuseong-076",
+      "name": "반석마을 1단지 호반리젠시빌",
+      "name_variants": [
+        "반석마을1단지호반리젠시빌"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 536
+    },
+    {
+      "id": "yuseong-077",
+      "name": "반석마을 5단지 금성백조 예미지",
+      "name_variants": [
+        "반석마을5단지금성백조예미지"
+      ],
+      "region": "대전 유성구 반석동",
+      "lawd_cd": "30200",
+      "households": 536
+    },
+    {
+      "id": "yuseong-078",
+      "name": "대덕테크노밸리 3단지 중앙하이츠빌",
+      "name_variants": [
+        "대덕테크노밸리3단지중앙하이츠빌"
+      ],
+      "region": "대전 유성구 관평동",
+      "lawd_cd": "30200",
+      "households": 535
+    },
+    {
+      "id": "yuseong-079",
+      "name": "청솔(한양)",
+      "name_variants": [
+        "청솔(한양)"
+      ],
+      "region": "대전 유성구 송강동",
+      "lawd_cd": "30200",
+      "households": 520
+    },
+    {
+      "id": "yuseong-080",
+      "name": "노은해랑숲마을5단지",
+      "name_variants": [
+        "노은해랑숲마을5단지"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 518
+    },
+    {
+      "id": "yuseong-081",
+      "name": "열매마을 1단지 삼부",
+      "name_variants": [
+        "열매마을1단지삼부"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 516
+    },
+    {
+      "id": "yuseong-082",
+      "name": "노은리슈빌3",
+      "name_variants": [
+        "노은리슈빌3"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 502
+    },
+    {
+      "id": "yuseong-083",
+      "name": "도안 양우내안애 레이크힐",
+      "name_variants": [
+        "도안양우내안애레이크힐"
+      ],
+      "region": "대전 유성구 원신흥동",
+      "lawd_cd": "30200",
+      "households": 500
+    },
+    {
+      "id": "yuseong-084",
+      "name": "열매마을 5단지 운암",
+      "name_variants": [
+        "열매마을5단지운암"
+      ],
+      "region": "대전 유성구 지족동",
+      "lawd_cd": "30200",
+      "households": 500
     }
   ]
 }
