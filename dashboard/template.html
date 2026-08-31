@@ -198,6 +198,28 @@
   .spark { display: block; }
   [hidden] { display: none !important; }
 
+  /* ---- 구별 시트탭(엑셀 탭 느낌) ---- */
+  .sheet-tabs { display: flex; gap: 4px; padding: 0 2px; margin-bottom: -1px; position: relative; z-index: 1; }
+  .sheet-tabs button {
+    border: 1px solid var(--border);
+    border-bottom-color: var(--surface-alt);
+    background: var(--surface-alt);
+    color: var(--text-dim);
+    padding: 8px 18px;
+    border-radius: 10px 10px 0 0;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .sheet-tabs button:hover { color: var(--text); }
+  .sheet-tabs button[aria-selected="true"] {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+    border-bottom-color: var(--surface);
+  }
+
   footer {
     border-top: 1px solid var(--border);
     padding-top: 16px;
@@ -248,6 +270,10 @@
       <div class="chip-toggle" id="f-type"></div>
     </div>
     <div class="filter-group">
+      <div class="fname">가격대</div>
+      <div class="chip-toggle" id="f-price"></div>
+    </div>
+    <div class="filter-group">
       <div class="fname">평형</div>
       <div class="chip-toggle" id="f-area"></div>
     </div>
@@ -272,6 +298,8 @@
 
   <div class="result-count" id="result-count"></div>
 
+  <div class="sheet-tabs" id="sheet-tabs" role="tablist" aria-label="구 필터"></div>
+
   <section class="table-wrap">
     <table id="table">
       <thead>
@@ -292,7 +320,7 @@
 
   <footer>
     <div>표에는 최근 6개월 내 개별 실거래를 모두 나열합니다(요약 아님). 추이(5년) 그래프와 전세가율은 표시 범위와 무관하게 5년 전체 raw 거래 데이터를 근거로 계산합니다.</div>
-    <div>실거래 신고(계약 체결 후 최대 30일 이내 신고) 기준 데이터로, 현재 매물 호가와는 다를 수 있습니다. 공급평형은 전용률 78% 가정 하의 추정치이며(국토부 실거래가 데이터에는 공급면적이 없음), 전세가율은 동일 단지·평형에서 매매와 같은 계약월에 거래된 전세의 평균가 기준입니다.</div>
+    <div>실거래 신고(계약 체결 후 최대 30일 이내 신고) 기준 데이터로, 현재 매물 호가와는 다를 수 있습니다. 공급평형은 전용률 78% 가정 하의 추정치이며(국토부 실거래가 데이터에는 공급면적이 없음), 전세가율은 동일 단지·평형에서 매매와 같은 계약월에 거래된 전세의 평균가 기준입니다. 추이(5년) 그래프는 전월 평균가 대비 7% 넘게 급변하는 월은 이상치로 보아 제외합니다.</div>
     <div>매주 월요일 07:00 KST 자동 갱신 예정 · 원자료: <span class="mono">GitHub 저장소 연결 예정</span></div>
   </footer>
 
@@ -306,7 +334,9 @@
   const state = {
     name: new Set(),
     type: new Set(),
+    price: new Set(),
     area: new Set(),
+    district: "",       // "" = 대전전체
     dateFrom: "",
     dateTo: "",
     ratioMin: null,
@@ -314,6 +344,22 @@
     sortKey: "date",
     sortDir: -1,
   };
+
+  const PRICE_BANDS = ["0~5억", "5~10억", "10억 이상"];
+
+  // 가격(만원 단위) -> 가격대 라벨. 5억=50,000만원, 10억=100,000만원.
+  function priceBandOf(v) {
+    if (v === null || v === undefined) return null;
+    if (v < 50000) return "0~5억";
+    if (v < 100000) return "5~10억";
+    return "10억 이상";
+  }
+
+  // region("대전 유성구", "대전 서구 둔산동" 등) -> 구 이름만 추출.
+  function districtOf(region) {
+    const parts = (region || "").trim().split(/\s+/);
+    return parts[1] || region || "기타";
+  }
 
   const TYPE_CLASS = { "매매": "trade", "전세": "jeonse", "월세": "wolse" };
 
@@ -371,7 +417,9 @@
   function passesFilters(r) {
     if (state.name.size && !state.name.has(r.name)) return false;
     if (state.type.size && !state.type.has(r.dealType)) return false;
+    if (state.price.size && !state.price.has(priceBandOf(r.value))) return false;
     if (state.area.size && !state.area.has(r.areaBucket)) return false;
+    if (state.district && districtOf(r.region) !== state.district) return false;
     if (state.dateFrom && r.date < state.dateFrom) return false;
     if (state.dateTo && r.date > state.dateTo) return false;
     if (state.ratioMin !== null || state.ratioMax !== null) {
@@ -443,9 +491,26 @@
     buildFilterChips("f-area", areas, state.area, render);
   }
 
+  // 구 탭(대전전체 + 데이터에 등장하는 구들, 엑셀 시트 탭처럼 단일 선택).
+  function buildSheetTabs() {
+    const districts = uniqueSorted(ROWS.map(r => districtOf(r.region)));
+    const tabs = ["대전전체", ...districts];
+    const el = document.getElementById("sheet-tabs");
+    el.innerHTML = tabs.map(t => `<button role="tab" data-v="${t}" aria-selected="${(state.district || "대전전체") === t}">${t}</button>`).join("");
+    el.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.district = btn.dataset.v === "대전전체" ? "" : btn.dataset.v;
+        el.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === btn.dataset.v ? "true" : "false"));
+        render();
+      });
+    });
+  }
+
   function initFilters() {
     buildFilterChips("f-name", uniqueSorted(ROWS.map(r => r.name)), state.name, () => { refreshAreaChips(); render(); });
     buildFilterChips("f-type", ["매매", "전세", "월세"], state.type, render);
+    buildFilterChips("f-price", PRICE_BANDS, state.price, render);
+    buildSheetTabs();
     refreshAreaChips();
 
     document.getElementById("f-date-from").addEventListener("input", e => { state.dateFrom = e.target.value; render(); });
@@ -454,9 +519,11 @@
     document.getElementById("f-ratio-max").addEventListener("input", e => { state.ratioMax = e.target.value === "" ? null : Number(e.target.value); render(); });
 
     document.getElementById("f-reset").addEventListener("click", () => {
-      state.name.clear(); state.type.clear(); state.area.clear();
+      state.name.clear(); state.type.clear(); state.price.clear(); state.area.clear();
+      state.district = "";
       state.dateFrom = ""; state.dateTo = ""; state.ratioMin = null; state.ratioMax = null;
-      document.querySelectorAll("#f-name button, #f-type button").forEach(b => b.setAttribute("aria-pressed", "false"));
+      document.querySelectorAll("#f-name button, #f-type button, #f-price button").forEach(b => b.setAttribute("aria-pressed", "false"));
+      document.querySelectorAll("#sheet-tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === "대전전체" ? "true" : "false"));
       ["f-date-from", "f-date-to", "f-ratio-min", "f-ratio-max"].forEach(id => document.getElementById(id).value = "");
       refreshAreaChips();
       render();

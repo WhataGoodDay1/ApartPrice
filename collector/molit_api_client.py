@@ -1,7 +1,7 @@
 """
 국토교통부 공공데이터포털 아파트 실거래가 API 수집기.
 
-- 매매: RTMSDataSvcAptTrade (getRTMSDataSvcAptTrade) — 기본(비-Dev) 엔드포인트로 실제 키 승인 확인됨
+- 매매: RTMSDataSvcAptTrade (getRTMSDataSvcAptTrade)
 - 전월세: RTMSDataSvcAptRent (getRTMSDataSvcAptRent)
 
 두 API 모두 파라미터: LAWD_CD(법정동코드 5자리, 시군구 단위), DEAL_YMD(계약년월 YYYYMM),
@@ -14,8 +14,8 @@ serviceKey, numOfRows, pageNo. 응답은 기본 XML.
 data/trades.csv 에 대상 단지(config/complexes.json)와 이름이 매칭되는 거래만
 정규화하여 upsert(중복 제거 후 갱신)한다.
 
-주의: 아직 실제 서비스키로 호출 테스트를 하지 않았음. 최초 실행 시 응답 구조
-(필드명, 에러코드 등)를 확인하고 필요하면 파서를 조정할 것.
+실제 서비스키로 호출 테스트 완료(2026-08). data/trades.csv에 source=molit_trade/
+molit_rent로 수집된 실데이터가 누적되어 있다.
 """
 from __future__ import annotations
 
@@ -74,7 +74,12 @@ class TradeRow:
 def load_complexes() -> list[dict]:
     with open(CONFIG_PATH, encoding="utf-8") as f:
         cfg = json.load(f)
-    return cfg["complexes"]
+    complexes = cfg["complexes"]
+    ids = [c["id"] for c in complexes]
+    dupes = {i for i in ids if ids.count(i) > 1}
+    if dupes:
+        raise ValueError(f"config/complexes.json에 중복된 id가 있습니다: {sorted(dupes)}")
+    return complexes
 
 
 def match_complex(raw_name: str, complexes: list[dict]) -> dict | None:

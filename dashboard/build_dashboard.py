@@ -25,6 +25,7 @@ CONFIG_PATH = ROOT / "config" / "complexes.json"
 DEAL_TYPES = ["매매", "전세", "월세"]
 PYEONG = 3.3058  # 1평 = 3.3058㎡
 EXCLUSIVE_RATIO_ASSUMPTION = 0.78  # 전용률 가정치(공급면적 추정용, 국토부 API에 공급면적 없음)
+TREND_OUTLIER_THRESHOLD = 0.07  # 추이 그래프: 전월 평균가 대비 이 비율 넘게 급변하면 제외
 
 
 def load_rows() -> list[dict]:
@@ -35,7 +36,12 @@ def load_rows() -> list[dict]:
 def load_complexes() -> dict[str, dict]:
     with open(CONFIG_PATH, encoding="utf-8") as f:
         cfg = json.load(f)
-    return {c["id"]: c for c in cfg["complexes"]}
+    complexes = cfg["complexes"]
+    ids = [c["id"] for c in complexes]
+    dupes = {i for i in ids if ids.count(i) > 1}
+    if dupes:
+        raise ValueError(f"config/complexes.json에 중복된 id가 있습니다: {sorted(dupes)}")
+    return {c["id"]: c for c in complexes}
 
 
 def area_bucket(area_str: str) -> str:
@@ -76,9 +82,27 @@ def build_jeonse_recent_index(rows: list[dict]) -> dict[tuple, list[dict]]:
     return idx
 
 
+def filter_trend_outliers(points: list[dict], threshold: float = TREND_OUTLIER_THRESHOLD) -> list[dict]:
+    """전월(직전 시점) 평균가 대비 threshold(기본 7%) 넘게 급변하는 포인트는 추이
+    그래프에서 제외한다 — 국지적으로 튀는 값(월별 표본이 적어 생기는 순간적 급등락)만
+    걸러내고, 여러 달에 걸쳐 이어지는 정상적인 5년치 시세 상승/하락 추세는 그대로 둔다.
+    각 포인트는 항상 원본(제외 여부 반영 전) 직전 포인트와 비교하므로, 판단 기준이
+    앞선 포인트의 제외 여부에 연쇄적으로 영향받지 않는다. 첫 포인트는 비교 대상이
+    없어 항상 유지한다."""
+    if len(points) < 2:
+        return points
+    out = [points[0]]
+    for prev, cur in zip(points, points[1:]):
+        prev_avg = prev["avg"]
+        if not prev_avg or abs(cur["avg"] - prev_avg) / prev_avg <= threshold:
+            out.append(cur)
+    return out
+
+
 def build_group_trends(rows: list[dict]) -> dict[tuple, list[dict]]:
     """(complex_id, deal_type, area_bucket) -> 5년 전체 raw 데이터 기준 월별 평균가 추이.
-    표에 보이는 행 범위(최근 6개월)와 무관하게 항상 전체 이력으로 계산한다."""
+    표에 보이는 행 범위(최근 6개월)와 무관하게 항상 전체 이력으로 계산한다. 최근월 평균가
+    대비 크게 튀는 포인트는 filter_trend_outliers()에서 제외한다."""
     groups: dict[tuple, list[dict]] = defaultdict(list)
     for r in rows:
         key = (r["complex_id"], r["deal_type"], area_bucket(r["area_exclusive"]))
@@ -89,10 +113,11 @@ def build_group_trends(rows: list[dict]) -> dict[tuple, list[dict]]:
         monthly: dict[str, list[int]] = defaultdict(list)
         for it in items:
             monthly[it["deal_ymd"]].append(int(it["price_or_deposit"]))
-        trends[key] = [
+        points = [
             {"ym": ym, "avg": round(sum(vals) / len(vals))}
             for ym, vals in sorted(monthly.items())
         ]
+        trends[key] = filter_trend_outliers(points)
     return trends
 
 
@@ -163,7 +188,7 @@ def build_rows(rows: list[dict], complexes: dict[str, dict], recent_months: int 
     return out
 
 
-def build_summary_html(rows: list[dict], complexes: dict[str, dict]) -> str:
+def build_summary_html(rows: list[dict], complexes: dict[str, dict], entries: list[dict]) -> str:
     total = len(rows)
     by_type = defaultdict(int)
     for r in rows:
@@ -173,8 +198,7 @@ def build_summary_html(rows: list[dict], complexes: dict[str, dict]) -> str:
     dates = [r["contract_date"] for r in rows]
     span = f"{min(dates)} ~ {max(dates)}" if dates else "-"
 
-    # 전세가율 계산 가능한 매매 건 평균
-    entries = build_rows(rows, complexes)
+    # 전세가율 계산 가능한 매매 건 평균 (entries는 build()에서 이미 계산된 것을 재사용)
     ratios = [e["jeonseRatio"] for e in entries if e["dealType"] == "매매" and e["jeonseRatio"] is not None]
     avg_ratio = f"{sum(ratios) / len(ratios):.1f}%" if ratios else "산출 불가"
 
@@ -228,7 +252,7 @@ def build() -> Path:
         html, flags=re.S,
     )
 
-    summary_html = build_summary_html(rows, complexes)
+    summary_html = build_summary_html(rows, complexes, row_entries)
     html = re.sub(
         r'(<section class="summary" aria-label="요약">).*?(</section>)',
         lambda m: m.group(1) + summary_html + m.group(2),
