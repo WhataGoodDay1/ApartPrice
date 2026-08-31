@@ -24,10 +24,28 @@
 
 ## 알아둘 것
 
-- `molit_api_client.py` 상단 docstring에는 "아직 실제 서비스키로 테스트 안 함"이라고
-  적혀 있지만, `data/trades.csv`에 `source=molit_trade/molit_rent`로 실제 수집된
-  데이터가 있는 것으로 보아 이미 최소 한 번은 성공 호출됨. docstring이 오래된 상태이니
-  다음에 손댈 때 정리할 것.
 - `config/complexes.json`의 `_note`: lawd_cd는 실호출로 검증 완료(유성구=30200, 서구=30170).
 - 전세가율 등은 5년 전체 데이터 기준으로 계산하고, 대시보드 표는 최근 6개월 개별 거래만
   나열함 (`build_dashboard.py`의 `recent_months` 파라미터).
+- 추이(5년) 그래프는 전월 대비 7% 넘게 급변하는 포인트를 이상치로 제외함
+  (`build_dashboard.py`의 `filter_trend_outliers`, `TREND_OUTLIER_THRESHOLD`).
+
+## 브랜치 / PR 워크플로 (2026-08-31부터 적용)
+
+**main에 직접 커밋하지 않는다.** 변경 작업은 다음 순서로 진행:
+
+1. `git checkout main && git pull` 후 `git checkout -b <종류>/<짧은-설명>`
+   (예: `feat/price-filter`, `fix/trend-outlier`)
+2. 변경 작업. 커밋 전에 반드시 로컬 테스트:
+   - 수집기를 건드렸으면 `python collector/molit_api_client.py --months 1` 등으로 실행 확인
+     (또는 최소한 `python -c "import collector.molit_api_client"`로 문법/임포트 확인)
+   - 대시보드를 건드렸으면 `python dashboard/build_dashboard.py`로 재빌드 후
+     `dashboard/dist.html`을 브라우저로 열어 실제로 확인
+3. 커밋 후 `git push -u origin <브랜치명>`
+4. GitHub에서 PR 생성 후 머지:
+   - `gh` CLI가 있으면 `gh pr create --fill` → 확인 후 `gh pr merge --squash`
+   - 없으면 `https://github.com/WhataGoodDay1/ApartPrice/compare/main...<브랜치명>?expand=1`
+     주소로 접속해 PR 생성 → GitHub 웹에서 머지
+5. 머지 후 로컬: `git checkout main && git pull && git branch -d <브랜치명>`
+
+이 프로젝트엔 자동화된 테스트/CI가 없으므로 "테스트"는 위 2단계의 수동 실행 확인을 뜻함.
