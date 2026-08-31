@@ -1,0 +1,477 @@
+<title>대전 아파트 시세판</title>
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface-alt: #eeeae1;
+    --border: #ddd7c9;
+    --text: #221f1a;
+    --text-dim: #726c5e;
+    --accent: #1f5d58;
+    --accent-strong: #123d3a;
+    --accent-soft: #e3efec;
+    --rise: #c8433a;
+    --rise-soft: #f7e3e1;
+    --fall: #2f5fc4;
+    --fall-soft: #e3eaf9;
+    --flat: #8a8471;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #191814;
+      --surface: #221f19;
+      --surface-alt: #2a271f;
+      --border: #3c382c;
+      --text: #ece6d8;
+      --text-dim: #a79f8b;
+      --accent: #57b3a8;
+      --accent-strong: #86d1c6;
+      --accent-soft: #23332f;
+      --rise: #e88178;
+      --rise-soft: #3a2521;
+      --fall: #85a6ec;
+      --fall-soft: #212c3f;
+      --flat: #9a927c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #191814;
+    --surface: #221f19;
+    --surface-alt: #2a271f;
+    --border: #3c382c;
+    --text: #ece6d8;
+    --text-dim: #a79f8b;
+    --accent: #57b3a8;
+    --accent-strong: #86d1c6;
+    --accent-soft: #23332f;
+    --rise: #e88178;
+    --rise-soft: #3a2521;
+    --fall: #85a6ec;
+    --fall-soft: #212c3f;
+    --flat: #9a927c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif;
+    line-height: 1.5;
+  }
+  h1, h2, h3 { font-family: "Gowun Batang", "Noto Serif KR", serif; text-wrap: balance; margin: 0; }
+  .mono, .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .banner {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.86rem;
+  }
+
+  header.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 18px;
+  }
+  header.hero .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  header.hero h1 { font-size: 2rem; }
+  header.hero .meta { text-align: right; color: var(--text-dim); font-size: 0.82rem; }
+  header.hero .meta .updated { color: var(--text); font-weight: 600; }
+
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .stat .label { font-size: 0.76rem; color: var(--text-dim); }
+  .stat .value { font-size: 1.4rem; font-weight: 700; margin-top: 4px; }
+  .stat .sub { font-size: 0.76rem; color: var(--text-dim); margin-top: 2px; }
+
+  /* ---- 필터 바 ---- */
+  .filters {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 140px; }
+  .filter-group .fname {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .chip-toggle { display: flex; flex-wrap: wrap; gap: 5px; max-width: 320px; }
+  .chip-toggle button {
+    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    color: var(--text-dim);
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .chip-toggle button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .range-row, .date-row { display: flex; align-items: center; gap: 6px; }
+  .filters input[type="date"],
+  .filters input[type="number"],
+  .filters input[type="search"] {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 7px;
+    padding: 5px 8px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    width: 108px;
+  }
+  .filters input[type="search"] { width: 160px; }
+  .filters input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .filter-reset {
+    align-self: flex-end;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .filter-reset:hover { color: var(--text); border-color: var(--text-dim); }
+  .result-count { font-size: 0.8rem; color: var(--text-dim); }
+
+  /* ---- 표 ---- */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.86rem; min-width: 1080px; }
+  thead th {
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th:hover { color: var(--text); }
+  thead th .arrow { opacity: 0.5; font-size: 0.7em; margin-left: 2px; }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-alt); }
+  .complex-name { font-weight: 700; }
+  .region { color: var(--text-dim); font-size: 0.76rem; font-weight: 400; }
+  .area-line { }
+  .area-sub { color: var(--text-dim); font-size: 0.76rem; }
+
+  .type-chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
+  .type-chip.trade { background: var(--accent-soft); color: var(--accent-strong); }
+  .type-chip.jeonse { background: var(--fall-soft); color: var(--fall); }
+  .type-chip.wolse { background: var(--surface-alt); color: var(--text-dim); }
+
+  .spark { display: block; }
+  [hidden] { display: none !important; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  @media (max-width: 600px) {
+    header.hero { flex-direction: column; align-items: flex-start; }
+    header.hero .meta { text-align: left; }
+  }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+<div class="page">
+
+  <!--BANNER_START-->
+  <div class="banner">
+    🔧 <strong>초안 미리보기</strong> — 실제 데이터 연결 전 샘플입니다.
+  </div>
+  <!--BANNER_END-->
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">대전 유성구 · 아파트 시세 트래커</div>
+      <h1>대전 아파트 시세판</h1>
+    </div>
+    <div class="meta">
+      <div>마지막 업데이트</div>
+      <div class="updated mono" id="updated-at"><!--UPDATED_AT-->2026-08-30<!--/UPDATED_AT--></div>
+    </div>
+  </header>
+
+  <!--SUMMARY_START-->
+  <section class="summary" aria-label="요약"></section>
+  <!--SUMMARY_END-->
+
+  <section class="filters" aria-label="필터">
+    <div class="filter-group">
+      <div class="fname">아파트명</div>
+      <div class="chip-toggle" id="f-name"></div>
+    </div>
+    <div class="filter-group">
+      <div class="fname">거래유형</div>
+      <div class="chip-toggle" id="f-type"></div>
+    </div>
+    <div class="filter-group">
+      <div class="fname">평형</div>
+      <div class="chip-toggle" id="f-area"></div>
+    </div>
+    <div class="filter-group">
+      <div class="fname">거래날짜</div>
+      <div class="date-row">
+        <input type="date" id="f-date-from">
+        <span>~</span>
+        <input type="date" id="f-date-to">
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="fname">전세가율 (%)</div>
+      <div class="range-row">
+        <input type="number" id="f-ratio-min" placeholder="최소" min="0" max="100">
+        <span>~</span>
+        <input type="number" id="f-ratio-max" placeholder="최대" min="0" max="100">
+      </div>
+    </div>
+    <button class="filter-reset" id="f-reset">필터 초기화</button>
+  </section>
+
+  <div class="result-count" id="result-count"></div>
+
+  <section class="table-wrap">
+    <table id="table">
+      <thead>
+        <tr>
+          <th data-key="name">아파트명<span class="arrow" data-arrow="name"></span></th>
+          <th data-key="dealType">거래유형<span class="arrow" data-arrow="dealType"></span></th>
+          <th data-key="areaM2">면적 / 평형(전용·공급)<span class="arrow" data-arrow="areaM2"></span></th>
+          <th data-key="date">거래날짜<span class="arrow" data-arrow="date"></span></th>
+          <th data-key="value">가격<span class="arrow" data-arrow="value"></span></th>
+          <th data-key="jeonseRatio">전세가율<span class="arrow" data-arrow="jeonseRatio"></span></th>
+          <th>최근 전세 (1건 / 10건평균)</th>
+          <th data-key="trend">추이(5년)<span class="arrow" data-arrow="trend"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </section>
+
+  <footer>
+    <div>표에는 최근 6개월 내 개별 실거래를 모두 나열합니다(요약 아님). 추이(5년) 그래프와 전세가율은 표시 범위와 무관하게 5년 전체 raw 거래 데이터를 근거로 계산합니다.</div>
+    <div>실거래 신고(계약 체결 후 최대 30일 이내 신고) 기준 데이터로, 현재 매물 호가와는 다를 수 있습니다. 공급평형은 전용률 78% 가정 하의 추정치이며(국토부 실거래가 데이터에는 공급면적이 없음), 전세가율은 동일 단지·평형에서 매매와 같은 계약월에 거래된 전세의 평균가 기준입니다.</div>
+    <div>매주 월요일 07:00 KST 자동 갱신 예정 · 원자료: <span class="mono">GitHub 저장소 연결 예정</span></div>
+  </footer>
+
+</div>
+
+<script>
+  /*DATA_START*/
+  const ROWS = [];
+  /*DATA_END*/
+
+  const state = {
+    name: new Set(),
+    type: new Set(),
+    area: new Set(),
+    dateFrom: "",
+    dateTo: "",
+    ratioMin: null,
+    ratioMax: null,
+    sortKey: "date",
+    sortDir: -1,
+  };
+
+  const TYPE_CLASS = { "매매": "trade", "전세": "jeonse", "월세": "wolse" };
+
+  function fmtWon(v) {
+    if (v === null || v === undefined) return "-";
+    return v.toLocaleString("ko-KR");
+  }
+
+  function priceCell(r) {
+    if (r.dealType === "월세") return `${fmtWon(r.value)} / ${fmtWon(r.rent)}만원`;
+    return `${fmtWon(r.value)}만원`;
+  }
+
+  function sparkline(points) {
+    const w = 110, h = 30, pad = 3;
+    if (!points || points.length < 2) {
+      return `<span style="color:var(--text-dim); font-size:0.78rem;">데이터 부족</span>`;
+    }
+    const values = points.map(p => p.avg);
+    const min = Math.min(...values), max = Math.max(...values);
+    const span = (max - min) || 1;
+    const stepX = (w - pad * 2) / (values.length - 1);
+    const pts = values.map((v, i) => {
+      const x = pad + i * stepX;
+      const y = h - pad - ((v - min) / span) * (h - pad * 2);
+      return [x, y];
+    });
+    const line = pts.map(p => p.join(",")).join(" ");
+    const areaPath = `M${pts[0][0]},${h} L` + line.split(" ").join(" L") + ` L${pts[pts.length - 1][0]},${h} Z`;
+    const changeAmt = values[values.length - 1] - values[0];
+    const color = changeAmt > 0 ? "var(--rise)" : changeAmt < 0 ? "var(--fall)" : "var(--flat)";
+    const last = pts[pts.length - 1];
+    return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="5년 추이">
+      <path d="${areaPath}" fill="${color}" opacity="0.12"></path>
+      <polyline points="${line}" fill="none" stroke="${color}" stroke-width="1.5"></polyline>
+      <circle cx="${last[0]}" cy="${last[1]}" r="2.2" fill="${color}"></circle>
+    </svg>`;
+  }
+
+  function uniqueSorted(arr) { return [...new Set(arr)].sort(); }
+
+  function buildFilterChips(containerId, values, stateSet, onChange) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = values.map(v => `<button data-v="${v}" aria-pressed="${stateSet.has(v)}">${v}</button>`).join("");
+    el.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const v = btn.dataset.v;
+        if (stateSet.has(v)) { stateSet.delete(v); btn.setAttribute("aria-pressed", "false"); }
+        else { stateSet.add(v); btn.setAttribute("aria-pressed", "true"); }
+        onChange();
+      });
+    });
+  }
+
+  function passesFilters(r) {
+    if (state.name.size && !state.name.has(r.name)) return false;
+    if (state.type.size && !state.type.has(r.dealType)) return false;
+    if (state.area.size && !state.area.has(r.areaBucket)) return false;
+    if (state.dateFrom && r.date < state.dateFrom) return false;
+    if (state.dateTo && r.date > state.dateTo) return false;
+    if (state.ratioMin !== null || state.ratioMax !== null) {
+      if (r.jeonseRatio === null || r.jeonseRatio === undefined) return false;
+      if (state.ratioMin !== null && r.jeonseRatio < state.ratioMin) return false;
+      if (state.ratioMax !== null && r.jeonseRatio > state.ratioMax) return false;
+    }
+    return true;
+  }
+
+  function sortRows(rows) {
+    const k = state.sortKey, dir = state.sortDir;
+    return rows.slice().sort((a, b) => {
+      let av = a[k], bv = b[k];
+      if (k === "trend") { av = a.trend.length; bv = b.trend.length; }
+      if (av === null || av === undefined) av = dir === 1 ? Infinity : -Infinity;
+      if (bv === null || bv === undefined) bv = dir === 1 ? Infinity : -Infinity;
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  }
+
+  function recentJeonseCell(r) {
+    if (!r.jeonseLatest) return `<span style="color:var(--text-dim);">-</span>`;
+    const latest = `${fmtWon(r.jeonseLatest.price)}만원 <span class="area-sub">(${r.jeonseLatest.date})</span>`;
+    const avg = r.jeonseAvg10
+      ? `<div class="area-sub num">최근 ${r.jeonseAvg10.n}건평균 ${fmtWon(r.jeonseAvg10.avg)}만원</div>`
+      : "";
+    return `<div class="num">${latest}</div>${avg}`;
+  }
+
+  function render() {
+    const filtered = sortRows(ROWS.filter(passesFilters));
+    document.getElementById("result-count").textContent = `${filtered.length}건 표시 중 (전체 ${ROWS.length}건)`;
+
+    document.getElementById("tbody").innerHTML = filtered.map(r => `
+      <tr>
+        <td><div class="complex-name">${r.name}</div><div class="region">${r.region}</div></td>
+        <td><span class="type-chip ${TYPE_CLASS[r.dealType]}">${r.dealType}</span></td>
+        <td>
+          <div class="area-line num">${r.areaM2.toFixed(1)}㎡</div>
+          <div class="area-sub num">전용 ${r.pyeongExclusive.toFixed(1)}평 / 공급 ${r.pyeongSupplyEst}평*</div>
+        </td>
+        <td class="num">${r.date}<div class="area-sub">${r.floor}층</div></td>
+        <td class="num">${priceCell(r)}</td>
+        <td class="num">${r.jeonseRatio !== null && r.jeonseRatio !== undefined ? r.jeonseRatio.toFixed(1) + "%" : "-"}</td>
+        <td>${recentJeonseCell(r)}</td>
+        <td>${sparkline(r.trend)}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px;">조건에 맞는 데이터가 없습니다.</td></tr>`;
+
+    document.querySelectorAll("[data-arrow]").forEach(el => {
+      el.textContent = el.dataset.arrow === state.sortKey ? (state.sortDir === 1 ? "▲" : "▼") : "";
+    });
+  }
+
+  function sortAreaBuckets(values) {
+    return values.sort((a, b) => parseFloat(a) - parseFloat(b));
+  }
+
+  // 아파트명 선택에 따라 평형 칩 목록을 다시 그린다(선택된 단지에 실제 존재하는 평형만 노출).
+  function refreshAreaChips() {
+    const scoped = state.name.size ? ROWS.filter(r => state.name.has(r.name)) : ROWS;
+    const areas = sortAreaBuckets(uniqueSorted(scoped.map(r => r.areaBucket)));
+    for (const a of Array.from(state.area)) {
+      if (!areas.includes(a)) state.area.delete(a); // 더 이상 유효하지 않은 선택은 해제
+    }
+    buildFilterChips("f-area", areas, state.area, render);
+  }
+
+  function initFilters() {
+    buildFilterChips("f-name", uniqueSorted(ROWS.map(r => r.name)), state.name, () => { refreshAreaChips(); render(); });
+    buildFilterChips("f-type", ["매매", "전세", "월세"], state.type, render);
+    refreshAreaChips();
+
+    document.getElementById("f-date-from").addEventListener("input", e => { state.dateFrom = e.target.value; render(); });
+    document.getElementById("f-date-to").addEventListener("input", e => { state.dateTo = e.target.value; render(); });
+    document.getElementById("f-ratio-min").addEventListener("input", e => { state.ratioMin = e.target.value === "" ? null : Number(e.target.value); render(); });
+    document.getElementById("f-ratio-max").addEventListener("input", e => { state.ratioMax = e.target.value === "" ? null : Number(e.target.value); render(); });
+
+    document.getElementById("f-reset").addEventListener("click", () => {
+      state.name.clear(); state.type.clear(); state.area.clear();
+      state.dateFrom = ""; state.dateTo = ""; state.ratioMin = null; state.ratioMax = null;
+      document.querySelectorAll("#f-name button, #f-type button").forEach(b => b.setAttribute("aria-pressed", "false"));
+      ["f-date-from", "f-date-to", "f-ratio-min", "f-ratio-max"].forEach(id => document.getElementById(id).value = "");
+      refreshAreaChips();
+      render();
+    });
+
+    document.querySelectorAll("thead th[data-key]").forEach(th => {
+      th.addEventListener("click", () => {
+        const k = th.dataset.key;
+        if (state.sortKey === k) state.sortDir *= -1;
+        else { state.sortKey = k; state.sortDir = 1; }
+        render();
+      });
+    });
+  }
+
+  initFilters();
+  render();
+</script>

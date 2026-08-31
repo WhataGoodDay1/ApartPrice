@@ -1,0 +1,251 @@
+"""
+data/trades.csv(국토부 실거래가 누적 데이터) -> dashboard/template.html의 마커 구간을 실데이터로
+치환해 dashboard/dist.html을 생성한다.
+
+표 구조(2026-08 개편): 매매/전세/월세를 한 표에 통합, 컬럼별 필터, 5년 추이, 전세가율(동일월
+매매 대비 전세 평균가 기준) 포함.
+
+사용법: python dashboard/build_dashboard.py
+"""
+from __future__ import annotations
+
+import csv
+import json
+import re
+from collections import defaultdict
+from datetime import datetime, timedelta
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA_PATH = ROOT / "data" / "trades.csv"
+TEMPLATE_PATH = ROOT / "dashboard" / "template.html"
+OUT_PATH = ROOT / "dashboard" / "dist.html"
+CONFIG_PATH = ROOT / "config" / "complexes.json"
+
+DEAL_TYPES = ["매매", "전세", "월세"]
+PYEONG = 3.3058  # 1평 = 3.3058㎡
+EXCLUSIVE_RATIO_ASSUMPTION = 0.78  # 전용률 가정치(공급면적 추정용, 국토부 API에 공급면적 없음)
+
+
+def load_rows() -> list[dict]:
+    with open(DATA_PATH, encoding="utf-8-sig") as f:
+        return list(csv.DictReader(f))
+
+
+def load_complexes() -> dict[str, dict]:
+    with open(CONFIG_PATH, encoding="utf-8") as f:
+        cfg = json.load(f)
+    return {c["id"]: c for c in cfg["complexes"]}
+
+
+def area_bucket(area_str: str) -> str:
+    try:
+        return f"{round(float(area_str))}㎡"
+    except ValueError:
+        return area_str
+
+
+def to_pyeong(area_m2: float) -> float:
+    return area_m2 / PYEONG
+
+
+def estimate_supply_pyeong(area_m2: float) -> int:
+    return round(area_m2 / EXCLUSIVE_RATIO_ASSUMPTION / PYEONG)
+
+
+def build_jeonse_index(rows: list[dict]) -> dict[tuple, list[int]]:
+    """(complex_id, area_bucket, deal_ymd) -> 전세 가격 리스트. 전세가율(동일월) 계산용."""
+    idx: dict[tuple, list[int]] = defaultdict(list)
+    for r in rows:
+        if r["deal_type"] == "전세":
+            key = (r["complex_id"], area_bucket(r["area_exclusive"]), r["deal_ymd"])
+            idx[key].append(int(r["price_or_deposit"]))
+    return idx
+
+
+def build_jeonse_recent_index(rows: list[dict]) -> dict[tuple, list[dict]]:
+    """(complex_id, area_bucket) -> 전세 거래를 최신순으로 정렬한 리스트(5년 전체).
+    '최근 전세 1건' / '최근 10건 평균' 컬럼 계산용."""
+    idx: dict[tuple, list[dict]] = defaultdict(list)
+    for r in rows:
+        if r["deal_type"] == "전세":
+            key = (r["complex_id"], area_bucket(r["area_exclusive"]))
+            idx[key].append(r)
+    for key in idx:
+        idx[key].sort(key=lambda r: r["contract_date"], reverse=True)
+    return idx
+
+
+def build_group_trends(rows: list[dict]) -> dict[tuple, list[dict]]:
+    """(complex_id, deal_type, area_bucket) -> 5년 전체 raw 데이터 기준 월별 평균가 추이.
+    표에 보이는 행 범위(최근 6개월)와 무관하게 항상 전체 이력으로 계산한다."""
+    groups: dict[tuple, list[dict]] = defaultdict(list)
+    for r in rows:
+        key = (r["complex_id"], r["deal_type"], area_bucket(r["area_exclusive"]))
+        groups[key].append(r)
+
+    trends: dict[tuple, list[dict]] = {}
+    for key, items in groups.items():
+        monthly: dict[str, list[int]] = defaultdict(list)
+        for it in items:
+            monthly[it["deal_ymd"]].append(int(it["price_or_deposit"]))
+        trends[key] = [
+            {"ym": ym, "avg": round(sum(vals) / len(vals))}
+            for ym, vals in sorted(monthly.items())
+        ]
+    return trends
+
+
+def build_rows(rows: list[dict], complexes: dict[str, dict], recent_months: int = 6) -> list[dict]:
+    """표에는 최근 recent_months개월 내 '개별' 거래를 모두 행으로 나열한다(요약 아님).
+    추이(trend)와 전세가율은 5년 전체 raw 데이터를 근거로 계산해 각 행에 그대로 붙인다."""
+    jeonse_idx = build_jeonse_index(rows)  # 전체 5년 기준
+    jeonse_recent_idx = build_jeonse_recent_index(rows)  # 전체 5년 기준
+    group_trends = build_group_trends(rows)  # 전체 5년 기준
+
+    cutoff = (datetime.now() - timedelta(days=recent_months * 30)).strftime("%Y-%m-%d")
+
+    out: list[dict] = []
+    for r in rows:
+        if r["contract_date"] < cutoff:
+            continue
+
+        cid = r["complex_id"]
+        deal_type = r["deal_type"]
+        bucket = area_bucket(r["area_exclusive"])
+        area_m2 = float(r["area_exclusive"])
+
+        jeonse_ratio = None
+        if deal_type == "매매":
+            comps = jeonse_idx.get((cid, bucket, r["deal_ymd"]))
+            if comps:
+                avg_jeonse = sum(comps) / len(comps)
+                sale_price = int(r["price_or_deposit"])
+                if sale_price:
+                    jeonse_ratio = round(avg_jeonse / sale_price * 100, 1)
+
+        recent_jeonse = jeonse_recent_idx.get((cid, bucket), [])
+        jeonse_latest = None
+        jeonse_avg10 = None
+        if recent_jeonse:
+            jeonse_latest = {
+                "price": int(recent_jeonse[0]["price_or_deposit"]),
+                "date": recent_jeonse[0]["contract_date"],
+            }
+            top10 = recent_jeonse[:10]
+            jeonse_avg10 = {
+                "avg": round(sum(int(x["price_or_deposit"]) for x in top10) / len(top10)),
+                "n": len(top10),
+            }
+
+        complex_ = complexes.get(cid, {})
+        entry = {
+            "id": cid,
+            "name": complex_.get("name", cid),
+            "region": complex_.get("region", ""),
+            "dealType": deal_type,
+            "areaM2": round(area_m2, 2),
+            "areaBucket": bucket,
+            "pyeongExclusive": round(to_pyeong(area_m2), 1),
+            "pyeongSupplyEst": estimate_supply_pyeong(area_m2),
+            "date": r["contract_date"],
+            "floor": r["floor"],
+            "value": int(r["price_or_deposit"]),
+            "rent": int(r["monthly_rent"]) if deal_type == "월세" else None,
+            "jeonseRatio": jeonse_ratio,
+            "jeonseLatest": jeonse_latest,
+            "jeonseAvg10": jeonse_avg10,
+            "trend": group_trends.get((cid, deal_type, bucket), []),
+        }
+        out.append(entry)
+
+    out.sort(key=lambda e: e["date"], reverse=True)
+    return out
+
+
+def build_summary_html(rows: list[dict], complexes: dict[str, dict]) -> str:
+    total = len(rows)
+    by_type = defaultdict(int)
+    for r in rows:
+        by_type[r["deal_type"]] += 1
+    type_line = " · ".join(f"{t} {by_type.get(t, 0)}" for t in DEAL_TYPES)
+
+    dates = [r["contract_date"] for r in rows]
+    span = f"{min(dates)} ~ {max(dates)}" if dates else "-"
+
+    # 전세가율 계산 가능한 매매 건 평균
+    entries = build_rows(rows, complexes)
+    ratios = [e["jeonseRatio"] for e in entries if e["dealType"] == "매매" and e["jeonseRatio"] is not None]
+    avg_ratio = f"{sum(ratios) / len(ratios):.1f}%" if ratios else "산출 불가"
+
+    names = " · ".join(c["name"] for c in complexes.values())
+
+    return f"""
+    <div class="stat">
+      <div class="label">추적 단지</div>
+      <div class="value">{len(complexes)}개</div>
+      <div class="sub">{names}</div>
+    </div>
+    <div class="stat">
+      <div class="label">누적 거래(5년)</div>
+      <div class="value">{total}건</div>
+      <div class="sub">{type_line}</div>
+    </div>
+    <div class="stat">
+      <div class="label">평균 전세가율</div>
+      <div class="value">{avg_ratio}</div>
+      <div class="sub">매매·동월 전세 평균 기준, {len(ratios)}건 산출</div>
+    </div>
+    <div class="stat">
+      <div class="label">데이터 기간</div>
+      <div class="value" style="font-size:1rem">{span}</div>
+      <div class="sub">국토부 실거래가, 신고 지연 최대 30일</div>
+    </div>
+"""
+
+
+def build() -> Path:
+    rows = load_rows()
+    complexes = load_complexes()
+    row_entries = build_rows(rows, complexes)
+
+    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M") + " (로컬 실행 기준)"
+    html = re.sub(
+        r"<!--UPDATED_AT-->.*?<!--/UPDATED_AT-->",
+        f"<!--UPDATED_AT-->{now_str}<!--/UPDATED_AT-->",
+        html, flags=re.S,
+    )
+
+    banner = (
+        '  <div class="banner">✅ <strong>실데이터 연결됨</strong> — 국토부 실거래가 API 기준, '
+        '표는 최근 6개월 개별 거래 전부를 나열하고 추이·전세가율은 5년 전체 데이터로 계산합니다.</div>'
+    )
+    html = re.sub(
+        r"<!--BANNER_START-->.*?<!--BANNER_END-->",
+        f"<!--BANNER_START-->\n{banner}\n  <!--BANNER_END-->",
+        html, flags=re.S,
+    )
+
+    summary_html = build_summary_html(rows, complexes)
+    html = re.sub(
+        r'(<section class="summary" aria-label="요약">).*?(</section>)',
+        lambda m: m.group(1) + summary_html + m.group(2),
+        html, flags=re.S,
+    )
+
+    rows_js = "const ROWS = " + json.dumps(row_entries, ensure_ascii=False, indent=2) + ";"
+    html = re.sub(
+        r"/\*DATA_START\*/.*?/\*DATA_END\*/",
+        f"/*DATA_START*/\n  {rows_js}\n  /*DATA_END*/",
+        html, flags=re.S,
+    )
+
+    OUT_PATH.write_text(html, encoding="utf-8")
+    return OUT_PATH
+
+
+if __name__ == "__main__":
+    out = build()
+    print(f"생성 완료: {out}")

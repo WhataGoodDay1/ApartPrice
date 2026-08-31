@@ -1,0 +1,40 @@
+{
+  "_note": "lawd_cd는 국토부 API 실호출로 확인 완료(유성구=30200, 서구=30170). name_variants는 국토부 실거래가 응답의 '아파트' 필드가 등기상 정식 명칭과 다르게 표기되는 경우가 있어 매칭용으로 둔다.",
+  "complexes": [
+    {
+      "id": "clover",
+      "name": "크로바아파트",
+      "name_variants": ["크로바", "크로바아파트"],
+      "region": "대전 유성구",
+      "lawd_cd": "30200"
+    },
+    {
+      "id": "dunsan-xi-i-park",
+      "name": "둔산자이아이파크",
+      "name_variants": ["둔산자이", "둔산아이파크", "자이아이파크"],
+      "region": "대전 서구 둔산동",
+      "lawd_cd": "30170"
+    },
+    {
+      "id": "jukdong-cheonnyeonnamu",
+      "name": "죽동천년나무아파트",
+      "name_variants": ["죽동천년나무5단지"],
+      "region": "대전 유성구 죽동",
+      "lawd_cd": "30200"
+    },
+    {
+      "id": "cantabile",
+      "name": "칸타빌",
+      "name_variants": ["죽동대원칸타빌"],
+      "region": "대전 유성구 죽동",
+      "lawd_cd": "30200"
+    },
+    {
+      "id": "yemiji",
+      "name": "예미지",
+      "name_variants": ["죽동금성백조예미지"],
+      "region": "대전 유성구",
+      "lawd_cd": "30200"
+    }
+  ]
+}
