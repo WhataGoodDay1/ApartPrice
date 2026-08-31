@@ -82,16 +82,26 @@ def load_complexes() -> list[dict]:
     return complexes
 
 
-def match_complex(raw_name: str, complexes: list[dict]) -> dict | None:
+def match_complex(raw_name: str, complexes: list[dict], lawd_cd: str | None = None) -> dict | None:
     """API가 내려준 아파트명이 config의 name_variants 중 하나를 포함하면 매칭.
+
+    lawd_cd를 주면 그 구(법정동코드)에 속한 단지만 후보로 본다. API 응답 자체가 이미
+    LAWD_CD로 조회한 결과라 raw_name은 항상 그 구의 실제 단지명인데, 후보를 전체
+    174개로 넓게 잡으면 서로 다른 구에 같은/비슷한 이름의 단지가 있을 때 엉뚱한 구의
+    단지로 잘못 매칭될 수 있다(예: 서구 "한아름아파트" vs 유성구 "신우한아름아파트").
+    lawd_cd를 넘기지 않으면(테스트 등) 이전처럼 전체를 후보로 본다.
 
     주의: 표시용 name(예: '예미지', '천년나무')은 여러 동네에 흩어진 서로 다른 단지가
     공유하는 브랜드명인 경우가 많아 매칭 후보에서 제외한다. name_variants에는 반드시
-    실제 등기 단지명(예: '죽동금성백조예미지')처럼 해당 단지에만 고유한 문자열을 넣을 것."""
+    실제 등기 단지명(예: '죽동금성백조예미지')처럼 해당 단지에만 고유한 문자열을 넣을 것.
+    같은 구 안에서도 이름이 겹치는 경우(예: "계룡"을 쓰는 서로 다른 단지)는 이 함수
+    수준에서 구분할 방법이 없으니, 그런 단지는 name_variants를 비워두지 말고 애매한
+    상태로 남겨(즉 매칭 안 되게) 잘못된 데이터가 섞이는 것보다 안전하게 둘 것."""
     if not raw_name:
         return None
     cleaned = raw_name.replace(" ", "")
-    for c in complexes:
+    pool = [c for c in complexes if lawd_cd is None or c.get("lawd_cd") == lawd_cd]
+    for c in pool:
         candidates = c.get("name_variants", [])
         if not candidates:
             raise ValueError(f"{c['name']}(id={c['id']})에 name_variants가 비어 있습니다. "
@@ -271,7 +281,7 @@ def run(months: int, api_key: str) -> None:
                 print(f"[매매 API 오류] lawd_cd={lawd_cd} ymd={ymd}: {e}", file=sys.stderr)
                 trade_items = []
             for item in trade_items:
-                c = match_complex(item.get("aptNm", ""), complexes)
+                c = match_complex(item.get("aptNm", ""), complexes, lawd_cd)
                 if c:
                     all_rows.append(normalize_trade_item(item, c, collected_at, ymd))
 
@@ -281,7 +291,7 @@ def run(months: int, api_key: str) -> None:
                 print(f"[전월세 API 오류] lawd_cd={lawd_cd} ymd={ymd}: {e}", file=sys.stderr)
                 rent_items = []
             for item in rent_items:
-                c = match_complex(item.get("aptNm", ""), complexes)
+                c = match_complex(item.get("aptNm", ""), complexes, lawd_cd)
                 if c:
                     all_rows.append(normalize_rent_item(item, c, collected_at, ymd))
 
