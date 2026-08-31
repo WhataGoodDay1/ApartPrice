@@ -220,6 +220,44 @@
     border-bottom-color: var(--surface);
   }
 
+  /* ---- 페이지 상단 탭(Raw Data / 단지 정보) ---- */
+  .view-tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); }
+  .view-tabs button {
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    padding: 10px 2px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .view-tabs button:hover { color: var(--text); }
+  .view-tabs button[aria-selected="true"] { color: var(--accent-strong); border-bottom-color: var(--accent); }
+
+  /* ---- 단지 정보 탭 ---- */
+  .complex-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+  .complex-picker button {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .complex-picker button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .complex-detail { margin-top: 16px; }
+  .complex-detail h2 { font-size: 1.4rem; }
+  .complex-detail .region { color: var(--text-dim); font-size: 0.84rem; margin-top: 2px; }
+  .complex-detail .complex-meta { color: var(--text-dim); font-size: 0.82rem; margin-top: 6px; }
+  .complex-detail .summary { margin-top: 14px; }
+  .complex-detail .empty { color: var(--text-dim); padding: 24px 0; }
+
   footer {
     border-top: 1px solid var(--border);
     padding-top: 16px;
@@ -250,7 +288,7 @@
     </div>
     <div class="meta">
       <div>마지막 업데이트</div>
-      <div class="updated mono" id="updated-at"><!--UPDATED_AT-->2026-08-31 21:25 (로컬 실행 기준)<!--/UPDATED_AT--></div>
+      <div class="updated mono" id="updated-at"><!--UPDATED_AT-->2026-08-31 21:51 (로컬 실행 기준)<!--/UPDATED_AT--></div>
     </div>
   </header>
 
@@ -278,6 +316,13 @@
     </div>
 </section>
   <!--SUMMARY_END-->
+
+  <div class="view-tabs" id="view-tabs" role="tablist" aria-label="보기 전환">
+    <button data-view="raw" role="tab" aria-selected="true">Raw Data</button>
+    <button data-view="complex" role="tab" aria-selected="false">단지 정보</button>
+  </div>
+
+  <div id="view-raw">
 
   <section class="filters" aria-label="필터">
     <div class="filter-group">
@@ -336,6 +381,13 @@
       <tbody id="tbody"></tbody>
     </table>
   </section>
+
+  </div>
+
+  <div id="view-complex" hidden>
+    <div class="complex-picker" id="complex-picker"></div>
+    <div class="complex-detail" id="complex-detail"></div>
+  </div>
 
   <footer>
     <div>표에는 최근 6개월 내 개별 실거래를 모두 나열합니다(요약 아님). 추이(5년) 그래프와 전세가율은 표시 범위와 무관하게 5년 전체 raw 거래 데이터를 근거로 계산합니다.</div>
@@ -31564,6 +31616,410 @@
 ];
   /*DATA_END*/
 
+  /*COMPLEX_DATA_START*/
+  const COMPLEX_SUMMARIES = [
+  {
+    "id": "clover",
+    "name": "크로바아파트",
+    "region": "대전 유성구",
+    "households": null,
+    "areaStats": [
+      {
+        "bucket": "85㎡",
+        "pyeongExclusive": 25.7,
+        "saleAvg": 106645,
+        "saleMax": 125000,
+        "saleMin": 98300,
+        "saleLatest": {
+          "price": 115000,
+          "date": "2026-03-25"
+        },
+        "saleCount": 11,
+        "jeonseAvg": 52823,
+        "jeonseLatest": {
+          "price": 60900,
+          "date": "2026-06-24"
+        },
+        "jeonseCount": 49,
+        "wolseCount": 19
+      },
+      {
+        "bucket": "102㎡",
+        "pyeongExclusive": 30.9,
+        "saleAvg": 119424,
+        "saleMax": 139800,
+        "saleMin": 66000,
+        "saleLatest": {
+          "price": 139800,
+          "date": "2026-06-03"
+        },
+        "saleCount": 66,
+        "jeonseAvg": 63884,
+        "jeonseLatest": {
+          "price": 75000,
+          "date": "2026-07-31"
+        },
+        "jeonseCount": 168,
+        "wolseCount": 74
+      },
+      {
+        "bucket": "115㎡",
+        "pyeongExclusive": 34.8,
+        "saleAvg": 140936,
+        "saleMax": 162000,
+        "saleMin": 118000,
+        "saleLatest": {
+          "price": 142000,
+          "date": "2026-08-24"
+        },
+        "saleCount": 76,
+        "jeonseAvg": 73018,
+        "jeonseLatest": {
+          "price": 80000,
+          "date": "2026-08-20"
+        },
+        "jeonseCount": 126,
+        "wolseCount": 71
+      },
+      {
+        "bucket": "135㎡",
+        "pyeongExclusive": 40.8,
+        "saleAvg": 174057,
+        "saleMax": 218000,
+        "saleMin": 150000,
+        "saleLatest": {
+          "price": 218000,
+          "date": "2026-08-06"
+        },
+        "saleCount": 51,
+        "jeonseAvg": 94076,
+        "jeonseLatest": {
+          "price": 89000,
+          "date": "2026-08-06"
+        },
+        "jeonseCount": 56,
+        "wolseCount": 38
+      },
+      {
+        "bucket": "165㎡",
+        "pyeongExclusive": 49.9,
+        "saleAvg": 214458,
+        "saleMax": 250000,
+        "saleMin": 180000,
+        "saleLatest": {
+          "price": 250000,
+          "date": "2026-08-06"
+        },
+        "saleCount": 36,
+        "jeonseAvg": 111677,
+        "jeonseLatest": {
+          "price": 105000,
+          "date": "2026-08-08"
+        },
+        "jeonseCount": 32,
+        "wolseCount": 8
+      }
+    ],
+    "saleMax": {
+      "price": 250000,
+      "areaBucket": "165㎡",
+      "date": "2026-08-06"
+    },
+    "saleMin": {
+      "price": 66000,
+      "areaBucket": "102㎡",
+      "date": "2023-06-09"
+    },
+    "totalTrades": 881,
+    "totalSale": 240,
+    "totalJeonse": 431,
+    "totalWolse": 210,
+    "avgTradesPerYear": 177.2,
+    "dataSpan": "2021-09-04 ~ 2026-08-24"
+  },
+  {
+    "id": "dunsan-xi-i-park",
+    "name": "둔산자이아이파크",
+    "region": "대전 서구 둔산동",
+    "households": null,
+    "areaStats": [
+      {
+        "bucket": "60㎡",
+        "pyeongExclusive": 18.1,
+        "saleAvg": null,
+        "saleMax": null,
+        "saleMin": null,
+        "saleLatest": null,
+        "saleCount": 0,
+        "jeonseAvg": 46000,
+        "jeonseLatest": {
+          "price": 46000,
+          "date": "2026-07-25"
+        },
+        "jeonseCount": 1,
+        "wolseCount": 2
+      },
+      {
+        "bucket": "85㎡",
+        "pyeongExclusive": 25.7,
+        "saleAvg": 98000,
+        "saleMax": 98000,
+        "saleMin": 98000,
+        "saleLatest": {
+          "price": 98000,
+          "date": "2026-08-17"
+        },
+        "saleCount": 1,
+        "jeonseAvg": 56500,
+        "jeonseLatest": {
+          "price": 60000,
+          "date": "2026-07-30"
+        },
+        "jeonseCount": 6,
+        "wolseCount": 6
+      },
+      {
+        "bucket": "100㎡",
+        "pyeongExclusive": 30.2,
+        "saleAvg": null,
+        "saleMax": null,
+        "saleMin": null,
+        "saleLatest": null,
+        "saleCount": 0,
+        "jeonseAvg": 80000,
+        "jeonseLatest": {
+          "price": 80000,
+          "date": "2026-07-24"
+        },
+        "jeonseCount": 1,
+        "wolseCount": 0
+      }
+    ],
+    "saleMax": {
+      "price": 98000,
+      "areaBucket": "85㎡",
+      "date": "2026-08-17"
+    },
+    "saleMin": {
+      "price": 98000,
+      "areaBucket": "85㎡",
+      "date": "2026-08-17"
+    },
+    "totalTrades": 17,
+    "totalSale": 1,
+    "totalJeonse": 8,
+    "totalWolse": 8,
+    "avgTradesPerYear": 20.2,
+    "dataSpan": "2025-10-14 ~ 2026-08-17"
+  },
+  {
+    "id": "jukdong-cheonnyeonnamu",
+    "name": "죽동천년나무아파트",
+    "region": "대전 유성구 죽동",
+    "households": null,
+    "areaStats": [
+      {
+        "bucket": "52㎡",
+        "pyeongExclusive": 15.7,
+        "saleAvg": 36225,
+        "saleMax": 40000,
+        "saleMin": 32450,
+        "saleLatest": {
+          "price": 32450,
+          "date": "2026-08-07"
+        },
+        "saleCount": 2,
+        "jeonseAvg": 27000,
+        "jeonseLatest": {
+          "price": 27000,
+          "date": "2026-01-24"
+        },
+        "jeonseCount": 1,
+        "wolseCount": 40
+      },
+      {
+        "bucket": "60㎡",
+        "pyeongExclusive": 18.1,
+        "saleAvg": 36523,
+        "saleMax": 50000,
+        "saleMin": 25000,
+        "saleLatest": {
+          "price": 35600,
+          "date": "2026-08-19"
+        },
+        "saleCount": 15,
+        "jeonseAvg": 28375,
+        "jeonseLatest": {
+          "price": 26000,
+          "date": "2026-08-11"
+        },
+        "jeonseCount": 20,
+        "wolseCount": 220
+      }
+    ],
+    "saleMax": {
+      "price": 50000,
+      "areaBucket": "60㎡",
+      "date": "2021-12-27"
+    },
+    "saleMin": {
+      "price": 25000,
+      "areaBucket": "60㎡",
+      "date": "2026-01-02"
+    },
+    "totalTrades": 298,
+    "totalSale": 17,
+    "totalJeonse": 21,
+    "totalWolse": 260,
+    "avgTradesPerYear": 61.0,
+    "dataSpan": "2021-09-30 ~ 2026-08-19"
+  },
+  {
+    "id": "cantabile",
+    "name": "칸타빌",
+    "region": "대전 유성구 죽동",
+    "households": null,
+    "areaStats": [
+      {
+        "bucket": "75㎡",
+        "pyeongExclusive": 22.7,
+        "saleAvg": 55957,
+        "saleMax": 69000,
+        "saleMin": 46000,
+        "saleLatest": {
+          "price": 57200,
+          "date": "2026-07-26"
+        },
+        "saleCount": 131,
+        "jeonseAvg": 36480,
+        "jeonseLatest": {
+          "price": 40000,
+          "date": "2026-04-22"
+        },
+        "jeonseCount": 134,
+        "wolseCount": 56
+      },
+      {
+        "bucket": "85㎡",
+        "pyeongExclusive": 25.7,
+        "saleAvg": 65324,
+        "saleMax": 85000,
+        "saleMin": 44000,
+        "saleLatest": {
+          "price": 68000,
+          "date": "2026-08-14"
+        },
+        "saleCount": 214,
+        "jeonseAvg": 41351,
+        "jeonseLatest": {
+          "price": 44000,
+          "date": "2026-08-24"
+        },
+        "jeonseCount": 238,
+        "wolseCount": 66
+      }
+    ],
+    "saleMax": {
+      "price": 85000,
+      "areaBucket": "85㎡",
+      "date": "2021-10-05"
+    },
+    "saleMin": {
+      "price": 44000,
+      "areaBucket": "85㎡",
+      "date": "2026-03-20"
+    },
+    "totalTrades": 839,
+    "totalSale": 345,
+    "totalJeonse": 372,
+    "totalWolse": 122,
+    "avgTradesPerYear": 168.3,
+    "dataSpan": "2021-09-02 ~ 2026-08-27"
+  },
+  {
+    "id": "yemiji",
+    "name": "예미지",
+    "region": "대전 유성구",
+    "households": null,
+    "areaStats": [
+      {
+        "bucket": "75㎡",
+        "pyeongExclusive": 22.7,
+        "saleAvg": 59972,
+        "saleMax": 74500,
+        "saleMin": 53000,
+        "saleLatest": {
+          "price": 55500,
+          "date": "2026-08-18"
+        },
+        "saleCount": 18,
+        "jeonseAvg": 36719,
+        "jeonseLatest": {
+          "price": 42000,
+          "date": "2026-03-07"
+        },
+        "jeonseCount": 21,
+        "wolseCount": 12
+      },
+      {
+        "bucket": "85㎡",
+        "pyeongExclusive": 25.7,
+        "saleAvg": 68218,
+        "saleMax": 90000,
+        "saleMin": 55550,
+        "saleLatest": {
+          "price": 67000,
+          "date": "2026-07-28"
+        },
+        "saleCount": 133,
+        "jeonseAvg": 41173,
+        "jeonseLatest": {
+          "price": 45000,
+          "date": "2026-08-27"
+        },
+        "jeonseCount": 217,
+        "wolseCount": 51
+      },
+      {
+        "bucket": "101㎡",
+        "pyeongExclusive": 30.6,
+        "saleAvg": 86058,
+        "saleMax": 99000,
+        "saleMin": 63000,
+        "saleLatest": {
+          "price": 85500,
+          "date": "2026-07-24"
+        },
+        "saleCount": 26,
+        "jeonseAvg": 50155,
+        "jeonseLatest": {
+          "price": 55000,
+          "date": "2026-06-10"
+        },
+        "jeonseCount": 50,
+        "wolseCount": 14
+      }
+    ],
+    "saleMax": {
+      "price": 99000,
+      "areaBucket": "101㎡",
+      "date": "2022-01-13"
+    },
+    "saleMin": {
+      "price": 53000,
+      "areaBucket": "75㎡",
+      "date": "2023-08-16"
+    },
+    "totalTrades": 542,
+    "totalSale": 177,
+    "totalJeonse": 288,
+    "totalWolse": 77,
+    "avgTradesPerYear": 108.7,
+    "dataSpan": "2021-09-02 ~ 2026-08-27"
+  }
+];
+  /*COMPLEX_DATA_END*/
+
   const state = {
     name: new Set(),
     type: new Set(),
@@ -31739,6 +32195,93 @@
     });
   }
 
+  // ---- 단지 정보 탭 ----
+  let selectedComplex = COMPLEX_SUMMARIES[0] ? COMPLEX_SUMMARIES[0].id : null;
+
+  function fmtManwon(v) { return v === null || v === undefined ? "-" : `${fmtWon(v)}만원`; }
+  function fmtPricePoint(p) { return p ? `${fmtManwon(p.price)} <span class="area-sub">(${p.date})</span>` : "-"; }
+
+  function renderComplexDetail() {
+    const el = document.getElementById("complex-detail");
+    const c = COMPLEX_SUMMARIES.find(x => x.id === selectedComplex);
+    if (!c) { el.innerHTML = `<p class="empty">단지를 선택해주세요.</p>`; return; }
+
+    const areaRows = c.areaStats.map(a => `
+      <tr>
+        <td>${a.bucket} <span class="area-sub">(전용 ${a.pyeongExclusive}평)</span></td>
+        <td class="num">${fmtManwon(a.saleAvg)}</td>
+        <td class="num">${fmtManwon(a.saleMax)} / ${fmtManwon(a.saleMin)}</td>
+        <td class="num">${a.saleLatest ? fmtPricePoint(a.saleLatest) : "-"}</td>
+        <td class="num">${fmtManwon(a.jeonseAvg)}</td>
+        <td class="num">${a.jeonseLatest ? fmtPricePoint(a.jeonseLatest) : "-"}</td>
+        <td class="num">${a.saleCount + a.jeonseCount + a.wolseCount}건</td>
+      </tr>
+    `).join("") || `<tr><td colspan="7" class="empty" style="text-align:center;">데이터 없음</td></tr>`;
+
+    el.innerHTML = `
+      <h2>${c.name}</h2>
+      <div class="region">${c.region}</div>
+      <div class="complex-meta">
+        세대수: ${c.households ?? "정보 없음(추후 업데이트)"} · 면적 종류 ${c.areaStats.length}종 ·
+        5년 누적 거래 ${c.totalTrades}건 (매매 ${c.totalSale} · 전세 ${c.totalJeonse} · 월세 ${c.totalWolse}) ·
+        데이터 기간 ${c.dataSpan}
+      </div>
+      <section class="summary" aria-label="단지 요약">
+        <div class="stat">
+          <div class="label">5년 최고가(매매)</div>
+          <div class="value" style="font-size:1.05rem">${c.saleMax ? fmtManwon(c.saleMax.price) : "-"}</div>
+          <div class="sub">${c.saleMax ? `${c.saleMax.areaBucket} · ${c.saleMax.date}` : "-"}</div>
+        </div>
+        <div class="stat">
+          <div class="label">5년 최저가(매매)</div>
+          <div class="value" style="font-size:1.05rem">${c.saleMin ? fmtManwon(c.saleMin.price) : "-"}</div>
+          <div class="sub">${c.saleMin ? `${c.saleMin.areaBucket} · ${c.saleMin.date}` : "-"}</div>
+        </div>
+        <div class="stat">
+          <div class="label">연평균 거래량</div>
+          <div class="value">${c.avgTradesPerYear ?? "-"}건</div>
+          <div class="sub">참고용 · 세대수 미반영이라 정식 회전율 아님</div>
+        </div>
+      </section>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>면적</th><th>매매 평균</th><th>매매 최고/최저</th><th>최근 매매</th>
+              <th>전세 평균</th><th>최근 전세</th><th>5년 거래건수</th>
+            </tr>
+          </thead>
+          <tbody>${areaRows}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function buildComplexPicker() {
+    const el = document.getElementById("complex-picker");
+    el.innerHTML = COMPLEX_SUMMARIES.map(c =>
+      `<button data-id="${c.id}" aria-pressed="${c.id === selectedComplex}">${c.name}</button>`
+    ).join("");
+    el.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectedComplex = btn.dataset.id;
+        el.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === selectedComplex ? "true" : "false"));
+        renderComplexDetail();
+      });
+    });
+  }
+
+  function initViewTabs() {
+    document.querySelectorAll("#view-tabs button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.view;
+        document.querySelectorAll("#view-tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.view === view ? "true" : "false"));
+        document.getElementById("view-raw").hidden = view !== "raw";
+        document.getElementById("view-complex").hidden = view !== "complex";
+      });
+    });
+  }
+
   function initFilters() {
     buildFilterChips("f-name", uniqueSorted(ROWS.map(r => r.name)), state.name, () => { refreshAreaChips(); render(); });
     buildFilterChips("f-type", ["매매", "전세", "월세"], state.type, render);
@@ -31774,4 +32317,7 @@
 
   initFilters();
   render();
+  initViewTabs();
+  buildComplexPicker();
+  renderComplexDetail();
 </script>

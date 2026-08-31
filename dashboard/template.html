@@ -220,6 +220,44 @@
     border-bottom-color: var(--surface);
   }
 
+  /* ---- 페이지 상단 탭(Raw Data / 단지 정보) ---- */
+  .view-tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); }
+  .view-tabs button {
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    padding: 10px 2px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .view-tabs button:hover { color: var(--text); }
+  .view-tabs button[aria-selected="true"] { color: var(--accent-strong); border-bottom-color: var(--accent); }
+
+  /* ---- 단지 정보 탭 ---- */
+  .complex-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+  .complex-picker button {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .complex-picker button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .complex-detail { margin-top: 16px; }
+  .complex-detail h2 { font-size: 1.4rem; }
+  .complex-detail .region { color: var(--text-dim); font-size: 0.84rem; margin-top: 2px; }
+  .complex-detail .complex-meta { color: var(--text-dim); font-size: 0.82rem; margin-top: 6px; }
+  .complex-detail .summary { margin-top: 14px; }
+  .complex-detail .empty { color: var(--text-dim); padding: 24px 0; }
+
   footer {
     border-top: 1px solid var(--border);
     padding-top: 16px;
@@ -259,6 +297,13 @@
   <!--SUMMARY_START-->
   <section class="summary" aria-label="요약"></section>
   <!--SUMMARY_END-->
+
+  <div class="view-tabs" id="view-tabs" role="tablist" aria-label="보기 전환">
+    <button data-view="raw" role="tab" aria-selected="true">Raw Data</button>
+    <button data-view="complex" role="tab" aria-selected="false">단지 정보</button>
+  </div>
+
+  <div id="view-raw">
 
   <section class="filters" aria-label="필터">
     <div class="filter-group">
@@ -318,6 +363,13 @@
     </table>
   </section>
 
+  </div>
+
+  <div id="view-complex" hidden>
+    <div class="complex-picker" id="complex-picker"></div>
+    <div class="complex-detail" id="complex-detail"></div>
+  </div>
+
   <footer>
     <div>표에는 최근 6개월 내 개별 실거래를 모두 나열합니다(요약 아님). 추이(5년) 그래프와 전세가율은 표시 범위와 무관하게 5년 전체 raw 거래 데이터를 근거로 계산합니다.</div>
     <div>실거래 신고(계약 체결 후 최대 30일 이내 신고) 기준 데이터로, 현재 매물 호가와는 다를 수 있습니다. 공급평형은 전용률 78% 가정 하의 추정치이며(국토부 실거래가 데이터에는 공급면적이 없음), 전세가율은 동일 단지·평형에서 매매와 같은 계약월에 거래된 전세의 평균가 기준입니다. 추이(5년) 그래프는 전월 평균가 대비 7% 넘게 급변하는 월은 이상치로 보아 제외합니다.</div>
@@ -330,6 +382,10 @@
   /*DATA_START*/
   const ROWS = [];
   /*DATA_END*/
+
+  /*COMPLEX_DATA_START*/
+  const COMPLEX_SUMMARIES = [];
+  /*COMPLEX_DATA_END*/
 
   const state = {
     name: new Set(),
@@ -506,6 +562,93 @@
     });
   }
 
+  // ---- 단지 정보 탭 ----
+  let selectedComplex = COMPLEX_SUMMARIES[0] ? COMPLEX_SUMMARIES[0].id : null;
+
+  function fmtManwon(v) { return v === null || v === undefined ? "-" : `${fmtWon(v)}만원`; }
+  function fmtPricePoint(p) { return p ? `${fmtManwon(p.price)} <span class="area-sub">(${p.date})</span>` : "-"; }
+
+  function renderComplexDetail() {
+    const el = document.getElementById("complex-detail");
+    const c = COMPLEX_SUMMARIES.find(x => x.id === selectedComplex);
+    if (!c) { el.innerHTML = `<p class="empty">단지를 선택해주세요.</p>`; return; }
+
+    const areaRows = c.areaStats.map(a => `
+      <tr>
+        <td>${a.bucket} <span class="area-sub">(전용 ${a.pyeongExclusive}평)</span></td>
+        <td class="num">${fmtManwon(a.saleAvg)}</td>
+        <td class="num">${fmtManwon(a.saleMax)} / ${fmtManwon(a.saleMin)}</td>
+        <td class="num">${a.saleLatest ? fmtPricePoint(a.saleLatest) : "-"}</td>
+        <td class="num">${fmtManwon(a.jeonseAvg)}</td>
+        <td class="num">${a.jeonseLatest ? fmtPricePoint(a.jeonseLatest) : "-"}</td>
+        <td class="num">${a.saleCount + a.jeonseCount + a.wolseCount}건</td>
+      </tr>
+    `).join("") || `<tr><td colspan="7" class="empty" style="text-align:center;">데이터 없음</td></tr>`;
+
+    el.innerHTML = `
+      <h2>${c.name}</h2>
+      <div class="region">${c.region}</div>
+      <div class="complex-meta">
+        세대수: ${c.households ?? "정보 없음(추후 업데이트)"} · 면적 종류 ${c.areaStats.length}종 ·
+        5년 누적 거래 ${c.totalTrades}건 (매매 ${c.totalSale} · 전세 ${c.totalJeonse} · 월세 ${c.totalWolse}) ·
+        데이터 기간 ${c.dataSpan}
+      </div>
+      <section class="summary" aria-label="단지 요약">
+        <div class="stat">
+          <div class="label">5년 최고가(매매)</div>
+          <div class="value" style="font-size:1.05rem">${c.saleMax ? fmtManwon(c.saleMax.price) : "-"}</div>
+          <div class="sub">${c.saleMax ? `${c.saleMax.areaBucket} · ${c.saleMax.date}` : "-"}</div>
+        </div>
+        <div class="stat">
+          <div class="label">5년 최저가(매매)</div>
+          <div class="value" style="font-size:1.05rem">${c.saleMin ? fmtManwon(c.saleMin.price) : "-"}</div>
+          <div class="sub">${c.saleMin ? `${c.saleMin.areaBucket} · ${c.saleMin.date}` : "-"}</div>
+        </div>
+        <div class="stat">
+          <div class="label">연평균 거래량</div>
+          <div class="value">${c.avgTradesPerYear ?? "-"}건</div>
+          <div class="sub">참고용 · 세대수 미반영이라 정식 회전율 아님</div>
+        </div>
+      </section>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>면적</th><th>매매 평균</th><th>매매 최고/최저</th><th>최근 매매</th>
+              <th>전세 평균</th><th>최근 전세</th><th>5년 거래건수</th>
+            </tr>
+          </thead>
+          <tbody>${areaRows}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function buildComplexPicker() {
+    const el = document.getElementById("complex-picker");
+    el.innerHTML = COMPLEX_SUMMARIES.map(c =>
+      `<button data-id="${c.id}" aria-pressed="${c.id === selectedComplex}">${c.name}</button>`
+    ).join("");
+    el.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectedComplex = btn.dataset.id;
+        el.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === selectedComplex ? "true" : "false"));
+        renderComplexDetail();
+      });
+    });
+  }
+
+  function initViewTabs() {
+    document.querySelectorAll("#view-tabs button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.view;
+        document.querySelectorAll("#view-tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.view === view ? "true" : "false"));
+        document.getElementById("view-raw").hidden = view !== "raw";
+        document.getElementById("view-complex").hidden = view !== "complex";
+      });
+    });
+  }
+
   function initFilters() {
     buildFilterChips("f-name", uniqueSorted(ROWS.map(r => r.name)), state.name, () => { refreshAreaChips(); render(); });
     buildFilterChips("f-type", ["매매", "전세", "월세"], state.type, render);
@@ -541,4 +684,7 @@
 
   initFilters();
   render();
+  initViewTabs();
+  buildComplexPicker();
+  renderComplexDetail();
 </script>
