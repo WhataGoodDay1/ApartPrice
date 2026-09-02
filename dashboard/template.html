@@ -78,7 +78,7 @@
   .mono, .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 
   .page {
-    max-width: 1180px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 28px 20px 60px;
     display: flex;
@@ -214,27 +214,9 @@
   .spark { display: block; }
   [hidden] { display: none !important; }
 
-  /* ---- 구별 시트탭(엑셀 탭 느낌) ---- */
-  .sheet-tabs { display: flex; gap: 4px; padding: 0 2px; margin-bottom: -1px; position: relative; z-index: 1; }
-  .sheet-tabs button {
-    border: 1px solid var(--border);
-    border-bottom-color: var(--surface-alt);
-    background: var(--surface-alt);
-    color: var(--text-dim);
-    padding: 8px 18px;
-    border-radius: 10px 10px 0 0;
-    font-size: 0.84rem;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .sheet-tabs button:hover { color: var(--text); }
-  .sheet-tabs button[aria-selected="true"] {
-    background: var(--surface);
-    color: var(--text);
-    border-color: var(--border);
-    border-bottom-color: var(--surface);
-  }
+  /* ---- Raw Data: 좌측 구>동 사이드바 + 우측 필터/표 ---- */
+  .raw-view { display: flex; align-items: flex-start; gap: 24px; }
+  .raw-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
   /* ---- 페이지 상단 탭(Raw Data / 단지 정보) ---- */
   .view-tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); }
@@ -253,21 +235,96 @@
   .view-tabs button:hover { color: var(--text); }
   .view-tabs button[aria-selected="true"] { color: var(--accent-strong); border-bottom-color: var(--accent); }
 
-  /* ---- 단지 정보 탭 ---- */
-  .complex-picker { display: flex; flex-wrap: wrap; gap: 8px; }
-  .complex-picker button {
-    border: 1px solid var(--border);
+  /* ---- 단지 정보 탭: 좌측 사이드바(관심아파트 + 구>동>단지명) + 우측 상세 ---- */
+  .complex-view { display: flex; align-items: flex-start; gap: 24px; }
+
+  .sidebar {
+    width: 300px;
+    flex: none;
     background: var(--surface);
-    color: var(--text);
-    padding: 9px 18px;
-    border-radius: 10px;
-    font-size: 0.88rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 0 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    position: sticky;
+    top: 20px;
   }
-  .complex-picker button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .complex-detail { margin-top: 16px; }
+  .sidebar-head { padding: 0 16px 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .sidebar-title { font-size: 1.05rem; }
+  .sidebar-count { font-size: 0.74rem; color: var(--text-dim); margin-top: 3px; }
+  .sidebar-search {
+    display: block;
+    width: calc(100% - 32px);
+    margin: 0 16px 14px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.82rem;
+  }
+  .sidebar-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* 관심아파트 */
+  .fav-section { margin: 0 16px 16px; padding: 10px 12px; background: var(--accent-soft); border: 1px solid var(--border); border-radius: 10px; }
+  .fav-head { font-size: 0.82rem; font-weight: 700; color: var(--accent-strong); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .fav-count { background: var(--accent); color: #fff; font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; font-weight: 600; }
+  .fav-empty { font-size: 0.76rem; color: var(--text-dim); line-height: 1.5; }
+  .fav-item { display: flex; justify-content: space-between; align-items: center; border-radius: 6px; font-size: 0.82rem; }
+  .fav-item:hover { background: var(--surface); }
+  .fav-item-main { flex: 1; min-width: 0; padding: 5px 6px; cursor: pointer; }
+  .fav-item .fav-name { font-weight: 600; }
+  .fav-item .fav-path { display: block; font-size: 0.7rem; color: var(--text-dim); }
+  .fav-item .fav-remove { border: none; background: transparent; color: var(--text-dim); cursor: pointer; font-size: 0.85rem; padding: 2px 6px; border-radius: 5px; flex: none; }
+  .fav-item .fav-remove:hover { background: var(--surface-alt); color: var(--text); }
+
+  /* 구 > 동 > 단지명 트리 */
+  details.gu { border-bottom: 1px solid var(--border); }
+  details.gu > summary {
+    list-style: none; cursor: pointer; padding: 10px 16px; display: flex;
+    justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.92rem;
+  }
+  details.gu > summary::-webkit-details-marker { display: none; }
+  details.gu > summary .gu-label { display: flex; align-items: center; gap: 6px; }
+  details.gu > summary .arrow { color: var(--text-dim); transition: transform 0.15s; font-size: 0.75rem; display: inline-block; }
+  details.gu[open] > summary .arrow { transform: rotate(90deg); }
+  details.gu > summary .gu-count { font-weight: 400; color: var(--text-dim); font-size: 0.78rem; }
+
+  details.dong { margin: 0 0 4px 12px; }
+  details.dong > summary {
+    list-style: none; cursor: pointer; padding: 6px 12px 6px 8px; display: flex;
+    justify-content: flex-start; align-items: center; gap: 5px; font-size: 0.82rem;
+    color: var(--text-dim); border-left: 2px solid var(--border);
+  }
+  details.dong > summary::-webkit-details-marker { display: none; }
+  details.dong > summary .arrow { font-size: 0.7rem; transition: transform 0.15s; display: inline-block; }
+  details.dong[open] > summary .arrow { transform: rotate(90deg); }
+
+  .apt-list { margin: 0 0 4px 22px; padding-left: 8px; border-left: 2px solid var(--border); }
+  .apt-row { display: flex; align-items: center; gap: 2px; }
+  .apt-item {
+    display: block; width: 100%; flex: 1; min-width: 0; text-align: left; padding: 7px 8px; border: none;
+    background: transparent; color: var(--text); font-family: inherit; font-size: 0.86rem;
+    border-radius: 7px; cursor: pointer;
+  }
+  .apt-item:hover { background: var(--surface-alt); }
+  .apt-item.selected { background: var(--accent); color: #fff; font-weight: 600; }
+  .apt-item .hh { display: block; font-size: 0.72rem; color: var(--text-dim); margin-top: 1px; }
+  .apt-item.selected .hh { color: #dff2ef; }
+  .star-btn {
+    flex: none; border: none; background: transparent; cursor: pointer; font-size: 1rem;
+    line-height: 1; color: var(--text-dim); padding: 6px 8px; border-radius: 6px;
+  }
+  .star-btn:hover { background: var(--surface-alt); }
+  .star-btn.active { color: #c98a00; }
+  @media (prefers-color-scheme: dark) { .star-btn.active { color: #e8b93a; } }
+
+  .complex-main { flex: 1; min-width: 0; }
+  .breadcrumb { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 8px; }
+  .breadcrumb b { color: var(--text); font-weight: 600; }
+
   .complex-detail h2 { font-size: 1.4rem; }
   .complex-detail .region { color: var(--text-dim); font-size: 0.84rem; margin-top: 2px; }
   .complex-detail .complex-meta { color: var(--text-dim); font-size: 0.82rem; margin-top: 6px; }
@@ -328,6 +385,10 @@
     header.hero { flex-direction: column; align-items: flex-start; }
     header.hero .meta { text-align: left; }
   }
+  @media (max-width: 860px) {
+    .complex-view, .raw-view { flex-direction: column; }
+    .sidebar { width: 100%; max-height: 340px; position: static; }
+  }
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
 
@@ -359,12 +420,35 @@
     <button data-view="raw" role="tab" aria-selected="false">Raw Data</button>
   </div>
 
-  <div id="view-complex">
-    <div class="complex-picker" id="complex-picker"></div>
-    <div class="complex-detail" id="complex-detail"></div>
+  <div id="view-complex" class="complex-view">
+    <nav class="sidebar" id="complex-sidebar">
+      <div class="sidebar-head">
+        <div class="sidebar-title">단지 목록</div>
+        <div class="sidebar-count" id="sidebar-count"></div>
+      </div>
+      <input type="search" class="sidebar-search" id="sidebar-search" placeholder="단지명 검색...">
+      <div class="fav-section">
+        <div class="fav-head">⭐ 관심아파트 <span class="fav-count" id="fav-count">0</span></div>
+        <div class="fav-list" id="fav-list"></div>
+      </div>
+      <div id="complex-tree"></div>
+    </nav>
+    <div class="complex-main">
+      <div class="complex-detail" id="complex-detail"></div>
+    </div>
   </div>
 
-  <div id="view-raw" hidden>
+  <div id="view-raw" hidden class="raw-view">
+
+  <nav class="sidebar" id="raw-sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-title">지역 선택</div>
+      <div class="sidebar-count" id="raw-sidebar-count"></div>
+    </div>
+    <div id="raw-tree"></div>
+  </nav>
+
+  <div class="raw-main">
 
   <section class="filters" aria-label="필터">
     <div class="filter-group">
@@ -404,8 +488,6 @@
 
   <div class="result-count" id="result-count"></div>
 
-  <div class="sheet-tabs" id="sheet-tabs" role="tablist" aria-label="구 필터"></div>
-
   <section class="table-wrap">
     <table id="table">
       <thead>
@@ -425,6 +507,7 @@
   </section>
 
   </div>
+  </div>
 
   <footer>
     <div>표에는 최근 6개월 내 개별 실거래를 모두 나열합니다(요약 아님). 추이(5년) 그래프와 전세가율은 표시 범위와 무관하게 5년 전체 raw 거래 데이터를 근거로 계산합니다.</div>
@@ -443,12 +526,17 @@
   const COMPLEX_SUMMARIES = [];
   /*COMPLEX_DATA_END*/
 
+  /*TARGET_FILTER_START*/
+  const TARGET_FILTER = { minHouseholds: 700, minAvgSale: 40000, months: 24 };
+  /*TARGET_FILTER_END*/
+
   const state = {
     name: new Set(),
     type: new Set(),
     price: new Set(),
     area: new Set(),
     district: "",       // "" = 대전전체
+    dong: "",           // "" = 선택한 구 전체
     dateFrom: "",
     dateTo: "",
     ratioMin: null,
@@ -471,6 +559,12 @@
   function districtOf(region) {
     const parts = (region || "").trim().split(/\s+/);
     return parts[1] || region || "기타";
+  }
+
+  // region -> 동 이름만 추출(없으면 "기타"). Raw Data 좌측 구>동 트리용.
+  function dongOf(region) {
+    const parts = (region || "").trim().split(/\s+/);
+    return parts[2] || "기타";
   }
 
   const TYPE_CLASS = { "매매": "trade", "전세": "jeonse", "월세": "wolse" };
@@ -532,6 +626,7 @@
     if (state.price.size && !state.price.has(priceBandOf(r.value))) return false;
     if (state.area.size && !state.area.has(r.areaBucket)) return false;
     if (state.district && districtOf(r.region) !== state.district) return false;
+    if (state.dong && dongOf(r.region) !== state.dong) return false;
     if (state.dateFrom && r.date < state.dateFrom) return false;
     if (state.dateTo && r.date > state.dateTo) return false;
     if (state.ratioMin !== null || state.ratioMax !== null) {
@@ -603,16 +698,66 @@
     buildFilterChips("f-area", areas, state.area, render);
   }
 
-  // 구 탭(대전전체 + 데이터에 등장하는 구들, 엑셀 시트 탭처럼 단일 선택).
-  function buildSheetTabs() {
-    const districts = uniqueSorted(ROWS.map(r => districtOf(r.region)));
-    const tabs = ["대전전체", ...districts];
-    const el = document.getElementById("sheet-tabs");
-    el.innerHTML = tabs.map(t => `<button role="tab" data-v="${t}" aria-selected="${(state.district || "대전전체") === t}">${t}</button>`).join("");
-    el.querySelectorAll("button").forEach(btn => {
+  // 좌측 구>동 선택에 따라 아파트명 칩 목록을 다시 그린다(칩에 너무 많은 이름이
+  // 한꺼번에 뜨지 않도록, 선택된 구/동 범위 안의 단지명만 노출).
+  function refreshNameChips() {
+    const scoped = ROWS.filter(r =>
+      (!state.district || districtOf(r.region) === state.district) &&
+      (!state.dong || dongOf(r.region) === state.dong)
+    );
+    const names = uniqueSorted(scoped.map(r => r.name));
+    for (const n of Array.from(state.name)) {
+      if (!names.includes(n)) state.name.delete(n); // 범위 밖으로 밀려난 선택은 해제
+    }
+    buildFilterChips("f-name", names, state.name, () => { refreshAreaChips(); render(); });
+  }
+
+  // 좌측 사이드바: 구(대전전체 + 서구/유성구) > 동. Raw Data 표를 지역으로 좁혀서
+  // 위 아파트명 칩이 한 번에 너무 많이 뜨지 않게 한다.
+  function buildRawTree() {
+    const el = document.getElementById("raw-tree");
+    const byGu = new Map();
+    for (const r of ROWS) {
+      const gu = districtOf(r.region);
+      if (!byGu.has(gu)) byGu.set(gu, new Set());
+      byGu.get(gu).add(dongOf(r.region));
+    }
+    const guNames = uniqueSorted([...byGu.keys()]);
+
+    document.getElementById("raw-sidebar-count").textContent = `${guNames.length}개 구 · 총 ${ROWS.length}건`;
+
+    const allActive = !state.district && !state.dong;
+    let html = `<div class="apt-list" style="margin:0 16px 10px;padding-left:0;border-left:none;">
+      <button class="apt-item${allActive ? " selected" : ""}" data-gu="" data-dong="">대전전체</button>
+    </div>`;
+
+    html += guNames.map(gu => {
+      const dongs = uniqueSorted([...byGu.get(gu)]);
+      const guActive = state.district === gu && !state.dong;
+      const dongHtml = dongs.map(dong => {
+        const active = state.district === gu && state.dong === dong;
+        return `<button class="apt-item${active ? " selected" : ""}" data-gu="${gu}" data-dong="${dong}">${dong}</button>`;
+      }).join("");
+      return `
+        <details class="gu" open>
+          <summary>
+            <span class="gu-label"><span class="arrow">▶</span> 대전 ${gu}</span>
+          </summary>
+          <div class="apt-list">
+            <button class="apt-item${guActive ? " selected" : ""}" data-gu="${gu}" data-dong="">${gu} 전체</button>
+            ${dongHtml}
+          </div>
+        </details>
+      `;
+    }).join("");
+
+    el.innerHTML = html;
+    el.querySelectorAll("[data-gu]").forEach(btn => {
       btn.addEventListener("click", () => {
-        state.district = btn.dataset.v === "대전전체" ? "" : btn.dataset.v;
-        el.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === btn.dataset.v ? "true" : "false"));
+        state.district = btn.dataset.gu;
+        state.dong = btn.dataset.dong;
+        buildRawTree();
+        refreshNameChips();
         render();
       });
     });
@@ -642,10 +787,11 @@
     `).join("") || `<tr><td colspan="7" class="empty" style="text-align:center;">데이터 없음</td></tr>`;
 
     el.innerHTML = `
+      <div class="breadcrumb">대전 <b>${c.gu}</b> &nbsp;›&nbsp; <b>${c.dong}</b> &nbsp;›&nbsp; <b>${c.name}</b></div>
       <h2>${c.name}</h2>
-      <div class="region">${c.region}</div>
       <div class="complex-meta">
-        세대수: ${c.households ?? "정보 없음(추후 업데이트)"} · 면적 종류 ${c.areaStats.length}종 ·
+        세대수: ${c.households ?? "정보 없음(추후 업데이트)"} · 최근 2년 매매 평균: ${c.recentAvgSale ? fmtManwon(c.recentAvgSale) + ` (${c.recentAvgSaleCount}건)` : "거래 없음"} ·
+        면적 종류 ${c.areaStats.length}종 ·
         5년 누적 거래 ${c.totalTrades}건 (매매 ${c.totalSale} · 전세 ${c.totalJeonse} · 월세 ${c.totalWolse}) ·
         데이터 기간 ${c.dataSpan}
       </div>
@@ -839,16 +985,134 @@
     });
   }
 
-  function buildComplexPicker() {
-    const el = document.getElementById("complex-picker");
-    el.innerHTML = COMPLEX_SUMMARIES.map(c =>
-      `<button data-id="${c.id}" aria-pressed="${c.id === selectedComplex}">${c.name}</button>`
-    ).join("");
-    el.querySelectorAll("button").forEach(btn => {
-      btn.addEventListener("click", () => {
-        selectedComplex = btn.dataset.id;
-        el.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === selectedComplex ? "true" : "false"));
-        renderComplexDetail();
+  // ---- 좌측 사이드바: 관심아파트(즐겨찾기, localStorage) + 구>동>단지명 트리 ----
+  const FAV_KEY = "apartprice_favorites_v1";
+  let favorites = new Set();
+
+  function loadFavorites() {
+    try {
+      const raw = localStorage.getItem(FAV_KEY);
+      if (raw) favorites = new Set(JSON.parse(raw));
+    } catch (e) { /* 저장소 접근 불가 환경(프라이빗 모드 등) — 무시 */ }
+  }
+  function saveFavorites() {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify([...favorites])); } catch (e) { /* 무시 */ }
+  }
+  function syncStarButtons() {
+    document.querySelectorAll(".star-btn").forEach(btn => {
+      const on = favorites.has(btn.dataset.id);
+      btn.classList.toggle("active", on);
+      btn.textContent = on ? "★" : "☆";
+    });
+  }
+  function renderFavList() {
+    const list = document.getElementById("fav-list");
+    document.getElementById("fav-count").textContent = favorites.size;
+    if (!favorites.size) {
+      list.innerHTML = `<div class="fav-empty">☆ 버튼을 눌러 관심 단지를 추가하세요</div>`;
+      return;
+    }
+    list.innerHTML = [...favorites].map(id => {
+      const c = COMPLEX_SUMMARIES.find(x => x.id === id);
+      if (!c) return "";
+      return `<div class="fav-item">
+        <span class="fav-item-main" data-id="${id}"><span class="fav-name">${c.name}</span><span class="fav-path">${c.gu} · ${c.dong}</span></span>
+        <button class="fav-remove" data-id="${id}" title="제거">×</button>
+      </div>`;
+    }).join("");
+    list.querySelectorAll(".fav-item-main").forEach(el => {
+      el.addEventListener("click", () => selectComplex(el.dataset.id));
+    });
+    list.querySelectorAll(".fav-remove").forEach(btn => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); toggleFavorite(btn.dataset.id); });
+    });
+  }
+  function toggleFavorite(id) {
+    if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
+    saveFavorites();
+    syncStarButtons();
+    renderFavList();
+  }
+
+  function selectComplex(id) {
+    selectedComplex = id;
+    document.querySelectorAll("#complex-tree .apt-item").forEach(b => b.classList.toggle("selected", b.dataset.id === id));
+    renderComplexDetail();
+  }
+
+  // 사이드바 트리에는 "대상 단지"(세대수 700+ & 최근 2년 매매 평균 4억+)만 나열한다.
+  function buildComplexTree() {
+    const el = document.getElementById("complex-tree");
+    const qualifying = COMPLEX_SUMMARIES.filter(c => c.qualifies);
+
+    document.getElementById("sidebar-count").textContent =
+      `필터: 최근 ${TARGET_FILTER.months / 12}년 평균 매매 ${(TARGET_FILTER.minAvgSale / 10000).toFixed(0)}억+ · ${TARGET_FILTER.minHouseholds}세대+ · 총 ${qualifying.length}개 단지`;
+
+    const byGu = new Map();
+    for (const c of qualifying) {
+      if (!byGu.has(c.gu)) byGu.set(c.gu, new Map());
+      const byDong = byGu.get(c.gu);
+      if (!byDong.has(c.dong)) byDong.set(c.dong, []);
+      byDong.get(c.dong).push(c);
+    }
+
+    const guNames = uniqueSorted([...byGu.keys()]);
+    el.innerHTML = guNames.map(gu => {
+      const byDong = byGu.get(gu);
+      const dongNames = uniqueSorted([...byDong.keys()]);
+      const total = dongNames.reduce((sum, d) => sum + byDong.get(d).length, 0);
+      const dongHtml = dongNames.map(dong => {
+        const apts = byDong.get(dong).slice().sort((a, b) => a.name.localeCompare(b.name, "ko"));
+        const aptHtml = apts.map(c => `
+          <div class="apt-row">
+            <button class="apt-item${c.id === selectedComplex ? " selected" : ""}" data-id="${c.id}" data-name="${c.name}">
+              ${c.name}<span class="hh">${c.households ? c.households.toLocaleString("ko-KR") + "세대" : "세대 정보없음"} · 최근2년 평균 ${c.recentAvgSale ? (c.recentAvgSale / 10000).toFixed(2) + "억" : "-"}</span>
+            </button>
+            <button class="star-btn" data-id="${c.id}" title="관심단지 추가/삭제"></button>
+          </div>
+        `).join("");
+        return `
+          <details class="dong" open>
+            <summary><span class="arrow">▶</span>${dong}</summary>
+            <div class="apt-list">${aptHtml}</div>
+          </details>
+        `;
+      }).join("");
+      return `
+        <details class="gu" open>
+          <summary>
+            <span class="gu-label"><span class="arrow">▶</span> 대전 ${gu}</span>
+            <span class="gu-count">${total}개</span>
+          </summary>
+          ${dongHtml}
+        </details>
+      `;
+    }).join("");
+
+    el.querySelectorAll(".apt-item").forEach(btn => {
+      btn.addEventListener("click", () => selectComplex(btn.dataset.id));
+    });
+    el.querySelectorAll(".star-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => { e.stopPropagation(); toggleFavorite(btn.dataset.id); });
+    });
+    syncStarButtons();
+  }
+
+  function initSidebarSearch() {
+    document.getElementById("sidebar-search").addEventListener("input", (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll("#complex-tree .apt-row").forEach(row => {
+        const name = row.querySelector(".apt-item").dataset.name.toLowerCase();
+        row.style.display = !q || name.includes(q) ? "" : "none";
+      });
+      document.querySelectorAll("#complex-tree details.dong").forEach(d => {
+        const anyVisible = [...d.querySelectorAll(".apt-row")].some(r => r.style.display !== "none");
+        d.style.display = anyVisible ? "" : "none";
+        if (q && anyVisible) d.open = true;
+      });
+      document.querySelectorAll("#complex-tree details.gu").forEach(g => {
+        const anyVisible = [...g.querySelectorAll(".apt-row")].some(r => r.style.display !== "none");
+        g.style.display = anyVisible ? "" : "none";
       });
     });
   }
@@ -865,10 +1129,10 @@
   }
 
   function initFilters() {
-    buildFilterChips("f-name", uniqueSorted(ROWS.map(r => r.name)), state.name, () => { refreshAreaChips(); render(); });
+    buildRawTree();
+    refreshNameChips();
     buildFilterChips("f-type", ["매매", "전세", "월세"], state.type, render);
     buildFilterChips("f-price", PRICE_BANDS, state.price, render);
-    buildSheetTabs();
     refreshAreaChips();
 
     document.getElementById("f-date-from").addEventListener("input", e => { state.dateFrom = e.target.value; render(); });
@@ -878,11 +1142,12 @@
 
     document.getElementById("f-reset").addEventListener("click", () => {
       state.name.clear(); state.type.clear(); state.price.clear(); state.area.clear();
-      state.district = "";
+      state.district = ""; state.dong = "";
       state.dateFrom = ""; state.dateTo = ""; state.ratioMin = null; state.ratioMax = null;
-      document.querySelectorAll("#f-name button, #f-type button, #f-price button").forEach(b => b.setAttribute("aria-pressed", "false"));
-      document.querySelectorAll("#sheet-tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === "대전전체" ? "true" : "false"));
+      document.querySelectorAll("#f-type button, #f-price button").forEach(b => b.setAttribute("aria-pressed", "false"));
       ["f-date-from", "f-date-to", "f-ratio-min", "f-ratio-max"].forEach(id => document.getElementById(id).value = "");
+      buildRawTree();
+      refreshNameChips();
       refreshAreaChips();
       render();
     });
@@ -900,6 +1165,13 @@
   initFilters();
   render();
   initViewTabs();
-  buildComplexPicker();
+  loadFavorites();
+  {
+    const firstQualifying = COMPLEX_SUMMARIES.find(c => c.qualifies);
+    if (firstQualifying) selectedComplex = firstQualifying.id;
+  }
+  buildComplexTree();
+  renderFavList();
+  initSidebarSearch();
   renderComplexDetail();
 </script>

@@ -27,6 +27,14 @@ PYEONG = 3.3058  # 1평 = 3.3058㎡
 EXCLUSIVE_RATIO_ASSUMPTION = 0.78  # 전용률 가정치(공급면적 추정용, 국토부 API에 공급면적 없음)
 TREND_OUTLIER_THRESHOLD = 0.07  # 추이 그래프: 전월 평균가 대비 이 비율 넘게 급변하면 제외
 
+# "단지 정보" 좌측 목록 + Raw Data 탭에 노출할 대상 단지 필터(2026-09 도입). 세대수
+# 500+ & 최근 1년 매매 평균가 5억(=50,000만원) 이상인 단지만 나열한다. 값은 데이터가
+# 쌓일 때마다 자동으로 다시 계산되므로(정적 스냅샷이 아님) config/complexes.json을
+# 별도로 편집할 필요는 없다.
+TARGET_MIN_HOUSEHOLDS = 500
+TARGET_MIN_AVG_SALE = 50000  # 만원 단위, 5억
+TARGET_RECENT_MONTHS = 12  # 최근 1년
+
 
 def load_rows() -> list[dict]:
     with open(DATA_PATH, encoding="utf-8-sig") as f:
@@ -188,6 +196,28 @@ def build_rows(rows: list[dict], complexes: dict[str, dict], recent_months: int 
     return out
 
 
+def parse_region(region: str) -> tuple[str, str]:
+    """region 문자열("대전 서구 둔산동", "대전 유성구" 등)에서 (구, 동)을 뽑는다.
+    동 정보가 없는 단지는 "기타"로 묶는다. 좌측 사이드바 트리(구>동>단지명) 그룹핑용."""
+    parts = (region or "").split()
+    gu = parts[1] if len(parts) > 1 else (region or "기타")
+    dong = parts[2] if len(parts) > 2 else "기타"
+    return gu, dong
+
+
+def build_recent_sale_avg(rows: list[dict], months: int = TARGET_RECENT_MONTHS) -> dict[str, dict]:
+    """complex_id -> 최근 months개월 매매 평균가(만원)/건수. 대상 단지 필터 판정에 사용."""
+    cutoff = (datetime.now() - timedelta(days=months * 30)).strftime("%Y-%m-%d")
+    prices: dict[str, list[int]] = defaultdict(list)
+    for r in rows:
+        if r["deal_type"] == "매매" and r["contract_date"] >= cutoff:
+            prices[r["complex_id"]].append(int(r["price_or_deposit"]))
+    return {
+        cid: {"avg": round(sum(vals) / len(vals)), "count": len(vals)}
+        for cid, vals in prices.items()
+    }
+
+
 def _area_sort_key(bucket: str) -> float:
     try:
         return float(bucket.rstrip("㎡"))
@@ -195,13 +225,18 @@ def _area_sort_key(bucket: str) -> float:
         return 0.0
 
 
-def build_complex_summaries(rows: list[dict], complexes: dict[str, dict]) -> list[dict]:
+def build_complex_summaries(
+    rows: list[dict], complexes: dict[str, dict], recent_avg: dict[str, dict]
+) -> list[dict]:
     """"단지 정보" 탭용 단지별 요약. 5년 전체 raw 데이터 기준으로 계산한다.
 
     세대수(households)는 국토부 실거래가 API에 없는 값이라 config/complexes.json에
     아직 없음 — complex_.get("households")가 None이면 프론트에서 "정보 없음"으로 표시.
     같은 이유로 정식 회전율(거래량/세대수)은 계산할 수 없어, 대신 데이터 기간 기준
     "연평균 거래량"을 참고용 근사치로 제공한다.
+
+    gu/dong/qualifies는 좌측 사이드바 트리(구>동>단지명) 및 대상 단지 필터(세대수+최근
+    2년 평균 매매가)용으로 2026-09에 추가됨.
     """
     by_complex: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
@@ -254,11 +289,26 @@ def build_complex_summaries(rows: list[dict], complexes: dict[str, dict]) -> lis
         span_days = (datetime.strptime(max(dates), "%Y-%m-%d") - datetime.strptime(min(dates), "%Y-%m-%d")).days if len(dates) >= 2 else 0
         avg_trades_per_year = round(len(crows) / (span_days / 365), 1) if span_days > 0 else None
 
+        gu, dong = parse_region(complex_.get("region", ""))
+        households = complex_.get("households")
+        ra = recent_avg.get(cid)
+        qualifies = bool(
+            ra is not None
+            and households is not None
+            and households >= TARGET_MIN_HOUSEHOLDS
+            and ra["avg"] >= TARGET_MIN_AVG_SALE
+        )
+
         summaries.append({
             "id": cid,
             "name": complex_["name"],
             "region": complex_.get("region", ""),
-            "households": complex_.get("households"),  # 미보유 시 None -> 프론트에서 "정보 없음"
+            "gu": gu,
+            "dong": dong,
+            "households": households,  # 미보유 시 None -> 프론트에서 "정보 없음"
+            "recentAvgSale": ra["avg"] if ra else None,  # 최근 2년 매매 평균가(만원) — 대상 단지 필터 기준
+            "recentAvgSaleCount": ra["count"] if ra else None,
+            "qualifies": qualifies,  # 세대수 700+ & 최근 2년 평균 매매 4억+ 를 모두 만족하는지
             "areaStats": area_stats,
             "saleMax": {"price": int(sale_max_row["price_or_deposit"]), "areaBucket": area_bucket(sale_max_row["area_exclusive"]), "date": sale_max_row["contract_date"]} if sale_max_row else None,
             "saleMin": {"price": int(sale_min_row["price_or_deposit"]), "areaBucket": area_bucket(sale_min_row["area_exclusive"]), "date": sale_min_row["contract_date"]} if sale_min_row else None,
@@ -309,7 +359,15 @@ def build_summary_html(rows: list[dict], complexes: dict[str, dict], entries: li
 def build() -> Path:
     rows = load_rows()
     complexes = load_complexes()
+
+    # 대상 단지(세대수+최근 매매 평균가 조건) 판정을 먼저 해서, Raw Data 표도 "단지 정보"
+    # 탭과 동일한 단지만 보여주도록 row_entries를 여기서 걸러낸다.
+    recent_avg = build_recent_sale_avg(rows)
+    complex_summaries = build_complex_summaries(rows, complexes, recent_avg)
+    qualifying_ids = {c["id"] for c in complex_summaries if c["qualifies"]}
+
     row_entries = build_rows(rows, complexes)
+    row_entries = [e for e in row_entries if e["id"] in qualifying_ids]
 
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
 
@@ -344,11 +402,21 @@ def build() -> Path:
         html, flags=re.S,
     )
 
-    complex_summaries = build_complex_summaries(rows, complexes)
     complex_js = "const COMPLEX_SUMMARIES = " + json.dumps(complex_summaries, ensure_ascii=False, indent=2) + ";"
     html = re.sub(
         r"/\*COMPLEX_DATA_START\*/.*?/\*COMPLEX_DATA_END\*/",
         f"/*COMPLEX_DATA_START*/\n  {complex_js}\n  /*COMPLEX_DATA_END*/",
+        html, flags=re.S,
+    )
+
+    target_filter_js = "const TARGET_FILTER = " + json.dumps({
+        "minHouseholds": TARGET_MIN_HOUSEHOLDS,
+        "minAvgSale": TARGET_MIN_AVG_SALE,
+        "months": TARGET_RECENT_MONTHS,
+    }, ensure_ascii=False) + ";"
+    html = re.sub(
+        r"/\*TARGET_FILTER_START\*/.*?/\*TARGET_FILTER_END\*/",
+        f"/*TARGET_FILTER_START*/\n  {target_filter_js}\n  /*TARGET_FILTER_END*/",
         html, flags=re.S,
     )
 
