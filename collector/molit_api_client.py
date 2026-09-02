@@ -96,14 +96,25 @@ def match_complex(raw_name: str, complexes: list[dict], lawd_cd: str | None = No
     실제 등기 단지명(예: '죽동금성백조예미지')처럼 해당 단지에만 고유한 문자열을 넣을 것.
     같은 구 안에서도 이름이 겹치는 경우(예: "계룡"을 쓰는 서로 다른 단지)는 이 함수
     수준에서 구분할 방법이 없으니, 그런 단지는 name_variants를 비워두지 말고 애매한
-    상태로 남겨(즉 매칭 안 되게) 잘못된 데이터가 섞이는 것보다 안전하게 둘 것."""
+    상태로 남겨(즉 매칭 안 되게) 잘못된 데이터가 섞이는 것보다 안전하게 둘 것.
+
+    name_variants_exact: raw_name이 짧고 흔해서(예: "목련") 포함(substring) 매칭으로는
+    다른 단지("백목련")까지 같이 걸려버리는 경우를 위한 완전일치 전용 후보 목록.
+    name_variants(포함 매칭)보다 먼저, 그리고 전체 pool을 대상으로 항상 먼저 검사한다 —
+    완전일치는 다른 단지의 포함 매칭에 의해 가로채일 위험이 없어 순서가 안전하다."""
     if not raw_name:
         return None
     cleaned = raw_name.replace(" ", "")
     pool = [c for c in complexes if lawd_cd is None or c.get("lawd_cd") == lawd_cd]
+
+    for c in pool:
+        for cand in c.get("name_variants_exact", []):
+            if cand.replace(" ", "") == cleaned:
+                return c
+
     for c in pool:
         candidates = c.get("name_variants", [])
-        if not candidates:
+        if not candidates and not c.get("name_variants_exact"):
             raise ValueError(f"{c['name']}(id={c['id']})에 name_variants가 비어 있습니다. "
                               "브랜드명만으로는 다른 단지와 혼동될 수 있어 고유 단지명을 반드시 지정해야 합니다.")
         for cand in candidates:
