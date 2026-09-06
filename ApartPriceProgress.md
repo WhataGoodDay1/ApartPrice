@@ -57,20 +57,39 @@
       다음 Claude Code 세션(앱 재시작 후)부터는 키를 다시 물어보지 않아도 됨(레지스트리엔
       즉시 반영되지만, 이미 떠 있던 셸 프로세스는 재시작 전까진 못 읽음 — 이번 세션 안에서는
       `--api-key` 플래그로 직접 전달해서 사용).
-- [x] **매주 월요일 자동 재수집 클라우드 루틴 생성 완료.** 사용자가 GitHub App 설치를
-      완료해서 `RemoteTrigger`(`/schedule`)로 루틴 생성 성공(id `trig_01QBKvgjyMfumw1RXvVbRAUX`,
-      https://claude.ai/code/routines/trig_01QBKvgjyMfumw1RXvVbRAUX). cron `0 23 * * 0`
-      (매주 일 23:00 UTC = 매주 월 08:00 KST), 저장소는 `WhataGoodDay1/ApartPrice` 클론.
-      동작: `main` pull → 날짜별 브랜치 → `--months 2` 재수집(지연 등록 대비 여유분) →
-      `verify_matching.py` 점검(참고용) → 대시보드 재빌드 → **수집·빌드가 모두 성공하면
-      PR 생성 후 자동 squash merge**, 둘 중 하나라도 실패하면 머지하지 않고 PR에 실패
-      원인만 남겨 사용자 검토 대기. 변경사항 없으면(신규 거래 0건) 조용히 종료.
-      MOLIT_API_KEY는 시크릿 저장 기능이 없어 루틴 프롬프트에 평문으로 포함(사용자 동의
-      받음 — claude.ai/code/routines에서 본인 계정에만 보임). 로컬 인터랙티브 세션용으로는
-      Windows 사용자 환경변수로 별도 저장해둠(위 항목 참고).
-      **다음 실행은 2026-09-07(월) 새벽 첫 실행 — 결과가 예상대로 나오는지(PR 자동 머지
-      여부, 실패 처리 등) 다음 세션에서 `RemoteTrigger`의 `list_runs`/`get_run_log`나
-      GitHub PR 이력으로 꼭 확인할 것.**
+- [x] **매주 월요일 자동 업데이트 최종적으로 GitHub Actions로 완성, 실제 end-to-end
+      검증까지 완료.**
+      - 처음엔 Claude Code 클라우드 루틴(`/schedule`/`RemoteTrigger`, id
+        `trig_01QBKvgjyMfumw1RXvVbRAUX`)으로 만들었으나, 사용자 요청으로 즉시 수동
+        실행(`run`)해서 테스트해본 결과 **클라우드 샌드박스의 egress 프록시가
+        `apis.data.go.kr`을 정책상 403으로 차단**해서 근본적으로 동작 불가로 판명(다행히
+        에이전트가 실패를 감지하고 트래시성 변경을 폐기 후 커밋/PR 없이 안전하게 종료,
+        푸시 알림만 보냄 — 데이터 오염 없음). 이 루틴은 `enabled: false`로 비활성화해둠
+        (API로 삭제는 불가 — 완전히 지우려면 https://claude.ai/code/routines 에서 수동 삭제).
+      - **GitHub Actions로 전환**(`.github/workflows/weekly-update.yml`): GitHub 자체
+        러너라 PC/세션 상태와 무관하게 동작하고, 외부 API 접속 제한도 없음. cron
+        `0 23 * * 0`(매주 월 08:00 KST) + `workflow_dispatch`(수동 실행 지원).
+        `MOLIT_API_KEY`는 `gh secret set`으로 **GitHub Actions Secrets에 암호화 저장**
+        (평문 노출 없음 — 클라우드 루틴보다 안전한 방식). 동작: `main` pull → 날짜별
+        브랜치 → `--months 2` 재수집 → `verify_matching.py` 점검(참고용) → 대시보드
+        재빌드 → 변경 있으면 커밋+PR 생성 → 수집·빌드 모두 성공 시 자동 squash merge,
+        실패 시 PR에 실패 원인만 남기고 보류. 변경 없으면 조용히 종료.
+      - **실제 `workflow_dispatch`로 3차례 테스트하며 버그 2건 발견·수정**:
+        (1) 리포지토리 기본 설정상 "Actions가 PR을 생성/승인할 권한 없음" → 사용자가
+        GitHub 웹(Settings→Actions→General→Workflow permissions)에서 직접 허용 처리
+        (Claude가 API로 직접 바꾸려던 시도는 안전장치가 자동 차단 — 사용자가 웹으로 처리).
+        (2) 이전 실패한 테스트가 브랜치만 남겨놔서 재실행 시 push가 non-fast-forward로
+        거부됨 → 브랜치 생성 전 동일 이름 원격 브랜치 우선 삭제 + `--force-with-lease`로
+        수정(PR #7). (참고: 국토부 API가 GitHub Actions 러너에서 한 번 타임아웃났었는데,
+        재시도하니 정상 응답 — 일시적 현상으로 보이고 지역 차단은 아닌 것으로 확인됨.)
+      - **최종 테스트(PR #8) 완전 자동 성공**: 수집→검증→빌드→커밋→PR 생성→자동
+        squash merge까지 사람 개입 없이 전부 동작 확인.
+      - 로컬 인터랙티브 세션용으로는 Windows 사용자 환경변수(`setx MOLIT_API_KEY`)로도
+        별도 저장해둠(위 항목 참고) — 다음에 로컬에서 직접 수집기를 돌릴 때도 키를
+        다시 물어볼 필요 없음(단, 새 세션/앱 재시작 후부터 적용).
+      - **다음 세션 확인할 것**: 2026-09-07(월) 08:00 KST 정기 스케줄 첫 실행이
+        `workflow_dispatch` 수동 테스트와 동일하게 잘 도는지 GitHub Actions 탭이나
+        `gh run list --workflow=weekly-update.yml`로 한 번 확인.
 - [ ] 대표 브랜드 1개만 매칭해둔 4개 단지(국화아파트/가장 삼성래미안/송강 청솔아파트/
       구봉마을 8단지 주공)는 원하면 나중에 브랜드별로 분리 등록(세대수 등 추가 조사 필요).
 
