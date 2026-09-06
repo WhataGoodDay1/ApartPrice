@@ -57,12 +57,20 @@
       다음 Claude Code 세션(앱 재시작 후)부터는 키를 다시 물어보지 않아도 됨(레지스트리엔
       즉시 반영되지만, 이미 떠 있던 셸 프로세스는 재시작 전까진 못 읽음 — 이번 세션 안에서는
       `--api-key` 플래그로 직접 전달해서 사용).
-- [ ] **매주 월요일 자동 재수집 클라우드 루틴 설정 진행 중**: `/schedule`로 Claude Code
-      클라우드 루틴(월 08:00 KST = 일 23:00 UTC, cron `0 23 * * 0`) 생성 예정 — 재수집+검증+
-      대시보드 재빌드+PR 자동 생성 후 검증 통과 시 자동 squash merge까지 하기로 사용자와
-      합의. **막힌 부분**: 클라우드 루틴이 `WhataGoodDay1/ApartPrice`에 접근하려면 GitHub App
-      설치가 필요해 보이는데(자동 체크 실패), 사용자의 설치 확인 대기 중. API 키는 시크릿
-      저장 기능이 없어 루틴 프롬프트에 평문으로 넣는 방식으로 진행하기로 사용자 동의받음.
+- [x] **매주 월요일 자동 재수집 클라우드 루틴 생성 완료.** 사용자가 GitHub App 설치를
+      완료해서 `RemoteTrigger`(`/schedule`)로 루틴 생성 성공(id `trig_01QBKvgjyMfumw1RXvVbRAUX`,
+      https://claude.ai/code/routines/trig_01QBKvgjyMfumw1RXvVbRAUX). cron `0 23 * * 0`
+      (매주 일 23:00 UTC = 매주 월 08:00 KST), 저장소는 `WhataGoodDay1/ApartPrice` 클론.
+      동작: `main` pull → 날짜별 브랜치 → `--months 2` 재수집(지연 등록 대비 여유분) →
+      `verify_matching.py` 점검(참고용) → 대시보드 재빌드 → **수집·빌드가 모두 성공하면
+      PR 생성 후 자동 squash merge**, 둘 중 하나라도 실패하면 머지하지 않고 PR에 실패
+      원인만 남겨 사용자 검토 대기. 변경사항 없으면(신규 거래 0건) 조용히 종료.
+      MOLIT_API_KEY는 시크릿 저장 기능이 없어 루틴 프롬프트에 평문으로 포함(사용자 동의
+      받음 — claude.ai/code/routines에서 본인 계정에만 보임). 로컬 인터랙티브 세션용으로는
+      Windows 사용자 환경변수로 별도 저장해둠(위 항목 참고).
+      **다음 실행은 2026-09-07(월) 새벽 첫 실행 — 결과가 예상대로 나오는지(PR 자동 머지
+      여부, 실패 처리 등) 다음 세션에서 `RemoteTrigger`의 `list_runs`/`get_run_log`나
+      GitHub PR 이력으로 꼭 확인할 것.**
 - [ ] 대표 브랜드 1개만 매칭해둔 4개 단지(국화아파트/가장 삼성래미안/송강 청솔아파트/
       구봉마을 8단지 주공)는 원하면 나중에 브랜드별로 분리 등록(세대수 등 추가 조사 필요).
 
