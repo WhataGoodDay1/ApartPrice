@@ -37,15 +37,20 @@
     세대수 직접 대조는 못함.
 - `dashboard/build_dashboard.py` 재빌드 확인(에러 없음). `python -c "import
   collector.molit_api_client"` 임포트 확인.
-- `fix/unresolved-name-matching-53` 브랜치에서 작업, 아직 push/PR 전.
+- `fix/unresolved-name-matching-53` 브랜치에서 작업, push 후 세션 종료.
+- **(같은 날 이어서)** `gh` CLI가 이미 설치돼 있음을 확인, `gh auth login`(디바이스 코드
+  방식)으로 로그인 완료(`WhataGoodDay1` 계정). `gh pr create --fill`로 PR #2 생성 후 본문에
+  Claude Code 서명 푸터 추가(`gh pr edit`), `gh pr merge --squash --delete-branch`로 main에
+  머지·브랜치 정리 완료(로컬/원격 모두 삭제 확인). 이제 로컬 `main`이 최신.
 
 ### 다음에 할 일 (TODO)
+- [x] `fix/unresolved-name-matching-53` PR 생성·머지 완료(PR #2, squash merge).
+- [x] gh CLI 설치·로그인 완료 — 앞으로는 PR 생성/머지를 터미널에서 바로 진행 가능.
 - [ ] **최우선**: `MOLIT_API_KEY` 확보되면 `python collector/molit_api_client.py --months 60`
       재수집 후 `scripts/verify_matching.py`로 이번 수정이 실제로 몇 건이나 새로 잡히는지
       확인. 특히 도안 아이파크(seo-019)가 여전히 0건인지 꼭 확인.
 - [ ] 대표 브랜드 1개만 매칭해둔 4개 단지(국화아파트/가장 삼성래미안/송강 청솔아파트/
       구봉마을 8단지 주공)는 원하면 나중에 브랜드별로 분리 등록(세대수 등 추가 조사 필요).
-- [ ] gh CLI 설치 여부는 여전히 미정.
 
 ### 참고
 - `scripts/raw_apt_names.json`은 2026-08-31 스냅샷이라 이후 새로 발생한 거래의 등록명은
