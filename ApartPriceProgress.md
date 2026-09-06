@@ -8,6 +8,16 @@
 ## 2026-09-06
 
 ### 한 일
+- **GitHub Pages로 대시보드 공개 링크 추가**: 사용자가 "매주 링크만 들어가면 되냐"고
+  물어봐서 확인해보니, 그때까진 그냥 저장소 안 파일이라 매번 git pull이 필요했음.
+  `.github/workflows/weekly-update.yml`에 배포 단계 추가(빌드 성공 시
+  `dashboard/dist.html` → GitHub Pages). GitHub Pages는 무료 플랜에서 public 저장소만
+  지원해서, **저장소를 private → public으로 전환**(사용자 동의 받음 — 국토부 공공데이터라
+  노출 문제 없다고 판단). `gh api .../pages`로 Source를 "GitHub Actions"로 설정.
+  `workflow_dispatch`로 실제 배포 테스트 완료, `curl`로 200 응답 확인.
+  **최종 링크: https://whatagoodday1.github.io/ApartPrice/** — 매주 월 08:00 KST
+  자동 업데이트 후 이 링크에 그대로 반영됨(로컬 작업 불필요).
+
 - **9/2 TODO "원인 불명 매칭 0건 53개" 전수 재점검·수정.** `scripts/verify_matching.py` +
   `scripts/raw_apt_names.json`(8/31 국토부 실제 등록명 스냅샷) 대조로 53개 전부에 대해
   실제 등록명 후보를 찾고, `config/complexes.json`의 `name_variants`를 교정(각 항목에
