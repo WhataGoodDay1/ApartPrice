@@ -1,0 +1,105 @@
+name: 주간 실거래가 자동 업데이트
+
+on:
+  schedule:
+    # 매주 일요일 23:00 UTC = 매주 월요일 08:00 KST
+    - cron: '0 23 * * 0'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: git 사용자 설정
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 오늘 날짜 브랜치 생성
+        run: git checkout -b "data/weekly-update-$(date +%Y-%m-%d)"
+
+      - name: 최근 2개월 재수집 (지연 등록된 실거래 반영)
+        id: collect
+        env:
+          MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
+        run: |
+          python collector/molit_api_client.py --months 2 2>&1 | tee collect_output.txt
+          echo "summary<<EOF" >> "$GITHUB_OUTPUT"
+          tail -5 collect_output.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: 매칭 점검 (참고용)
+        id: verify
+        run: |
+          python scripts/verify_matching.py 2>&1 | tee verify_output.txt
+          echo "summary<<EOF" >> "$GITHUB_OUTPUT"
+          grep -E "전체 단지|매칭 0건|섞인 단지" verify_output.txt >> "$GITHUB_OUTPUT" || true
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: 대시보드 재빌드
+        id: build
+        run: python dashboard/build_dashboard.py
+        continue-on-error: true
+
+      - name: 변경사항 확인
+        id: diff
+        run: |
+          rm -f collect_output.txt verify_output.txt
+          if [ -n "$(git status --porcelain -- data/trades.csv dashboard/dist.html)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 커밋 및 푸시
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git add data/trades.csv dashboard/dist.html
+          git commit -m "주간 자동 업데이트 $(date +%Y-%m-%d)
+
+          수집 결과: ${{ steps.collect.outputs.summary }}
+          검증 결과: ${{ steps.verify.outputs.summary }}
+
+          GitHub Actions 스케줄(매주 월 08:00 KST)로 자동 실행됨.
+
+          Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+          git push -u origin HEAD
+
+      - name: PR 생성 및 (검증 통과 시) 자동 머지
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH=$(git branch --show-current)
+          gh pr create --base main --head "$BRANCH" \
+            --title "주간 자동 업데이트 $(date +%Y-%m-%d)" \
+            --body "$(cat <<EOF
+          수집 결과: ${{ steps.collect.outputs.summary }}
+
+          검증 결과:
+          ${{ steps.verify.outputs.summary }}
+
+          🤖 매주 자동 업데이트(GitHub Actions 스케줄)에 의해 생성됨.
+          EOF
+          )"
+          if [ "${{ steps.collect.outcome }}" = "success" ] && [ "${{ steps.build.outcome }}" = "success" ]; then
+            gh pr merge "$BRANCH" --squash --delete-branch
+          else
+            gh pr comment "$BRANCH" --body "⚠️ 수집(collect) 또는 대시보드 빌드(build) 단계가 실패했습니다 (collect: ${{ steps.collect.outcome }}, build: ${{ steps.build.outcome }}). 자동 머지하지 않았습니다 — Actions 로그를 확인 후 수동으로 검토해주세요."
+          fi
