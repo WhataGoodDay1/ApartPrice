@@ -30,7 +30,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: 오늘 날짜 브랜치 생성
-        run: git checkout -b "data/weekly-update-$(date +%Y-%m-%d)"
+        run: |
+          BRANCH="data/weekly-update-$(date +%Y-%m-%d)"
+          git push origin --delete "$BRANCH" 2>/dev/null || true
+          git checkout -b "$BRANCH"
 
       - name: 최근 2개월 재수집 (지연 등록된 실거래 반영)
         id: collect
@@ -79,7 +82,7 @@ jobs:
           GitHub Actions 스케줄(매주 월 08:00 KST)로 자동 실행됨.
 
           Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
-          git push -u origin HEAD
+          git push -u origin HEAD --force-with-lease
 
       - name: PR 생성 및 (검증 통과 시) 자동 머지
         if: steps.diff.outputs.changed == 'true'
