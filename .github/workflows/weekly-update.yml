@@ -9,10 +9,15 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  pages: write
+  id-token: write
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - name: 저장소 체크아웃
         uses: actions/checkout@v4
@@ -106,3 +111,20 @@ jobs:
           else
             gh pr comment "$BRANCH" --body "⚠️ 수집(collect) 또는 대시보드 빌드(build) 단계가 실패했습니다 (collect: ${{ steps.collect.outcome }}, build: ${{ steps.build.outcome }}). 자동 머지하지 않았습니다 — Actions 로그를 확인 후 수동으로 검토해주세요."
           fi
+
+      - name: GitHub Pages 배포 준비
+        if: steps.build.outcome == 'success'
+        run: |
+          mkdir -p _site
+          cp dashboard/dist.html _site/index.html
+
+      - name: Pages 아티팩트 업로드
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: GitHub Pages 배포
+        if: steps.build.outcome == 'success'
+        id: deploy
+        uses: actions/deploy-pages@v4
