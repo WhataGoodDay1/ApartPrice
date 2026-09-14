@@ -283,12 +283,16 @@ def run(months: int, api_key: str) -> None:
     lawd_codes = sorted({c["lawd_cd"] for c in complexes if c.get("lawd_cd")})
     collected_at = date.today().isoformat()
     all_rows: list[TradeRow] = []
+    total_calls = 0
+    failed_calls = 0
 
     for lawd_cd in lawd_codes:
         for ymd in recent_year_months(months):
+            total_calls += 1
             try:
                 trade_items = fetch_trades(lawd_cd, ymd, api_key)
             except RuntimeError as e:
+                failed_calls += 1
                 print(f"[매매 API 오류] lawd_cd={lawd_cd} ymd={ymd}: {e}", file=sys.stderr)
                 trade_items = []
             for item in trade_items:
@@ -296,15 +300,31 @@ def run(months: int, api_key: str) -> None:
                 if c:
                     all_rows.append(normalize_trade_item(item, c, collected_at, ymd))
 
+            total_calls += 1
             try:
                 rent_items = fetch_rents(lawd_cd, ymd, api_key)
             except RuntimeError as e:
+                failed_calls += 1
                 print(f"[전월세 API 오류] lawd_cd={lawd_cd} ymd={ymd}: {e}", file=sys.stderr)
                 rent_items = []
             for item in rent_items:
                 c = match_complex(item.get("aptNm", ""), complexes, lawd_cd)
                 if c:
                     all_rows.append(normalize_rent_item(item, c, collected_at, ymd))
+
+    # API 호출이 전부 실패하면(네트워크 차단, 서비스 장애 등) 매칭 0건/신규 0건이라도
+    # "정상적으로 새 거래가 없었던 것"과 구분해야 한다. 그대로 종료 코드 0을 반환하면
+    # 자동화 루틴(예: GitHub Actions)이 이를 성공으로 오인해 커밋/PR/머지를 진행할 수
+    # 있다(실제로 2026-09-06 GitHub Actions 실행에서 전량 타임아웃에도 불구하고 이런
+    # 상황이 발생 — 다행히 실데이터 손상은 없었지만 의미 없는 PR이 자동 머지됨).
+    if total_calls > 0 and failed_calls == total_calls:
+        print(
+            f"[치명적 오류] API 호출 {total_calls}건이 전부 실패했습니다 "
+            "(네트워크 차단 또는 서비스 장애 가능성). 실제 수집이 이루어지지 않아 실패로 "
+            "처리합니다.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     before, added = upsert_csv(all_rows)
     print(f"수집 완료: 매칭된 거래 {len(all_rows)}건 처리, 기존 {before}건 -> 신규/갱신 {added}건 추가, 총 {before + added}건")
